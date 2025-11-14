@@ -65,7 +65,7 @@ class UserRequest extends Model
     /**
      * A kérést benyújtó felhasználó.
      *
-     * @return BelongsTo<User, self>
+     * @return BelongsTo<User, UserRequest>
      */
     public function user(): BelongsTo
     {
@@ -75,7 +75,7 @@ class UserRequest extends Model
     /**
      * Az admin, aki a kérelmet kezelte.
      *
-     * @return BelongsTo<User, self>
+     * @return BelongsTo<User, UserRequest>
      */
     public function handler(): BelongsTo
     {

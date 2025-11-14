@@ -77,7 +77,7 @@ class User extends Authenticatable
     /**
      * Felhasználó kedvenc autói.
      *
-     * @return HasMany<\App\Models\FavoriteCar>
+     * @return HasMany<FavoriteCar, User>
      */
     public function favoriteCars(): HasMany
     {
@@ -87,7 +87,7 @@ class User extends Authenticatable
     /**
      * Felhasználó által indított kérelmek.
      *
-     * @return HasMany<\App\Models\UserRequest>
+     * @return HasMany<UserRequest, User>
      */
     public function requests(): HasMany
     {
@@ -97,7 +97,7 @@ class User extends Authenticatable
     /**
      * Kérelmek, amelyeket ez a felhasználó (admin) kezelt.
      *
-     * @return HasMany<\App\Models\UserRequest>
+     * @return HasMany<UserRequest, User>
      */
     public function handledRequests(): HasMany
     {

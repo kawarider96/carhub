@@ -49,7 +49,7 @@ class CarBrand extends Model
     /**
      * A márkához tartozó autótípusok (1:N).
      *
-     * @return HasMany<CarModel>
+     * @return HasMany<CarModel, CarBrand>
      */
     public function models(): HasMany
     {

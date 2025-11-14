@@ -28,12 +28,14 @@ class UserRequestRepositoryTest extends TestCase
 
         $req = $this->repo->create([
             'user_id' => $user->id,
-            'status' => 'open'
+            'status' => 'open',
+            'type' => 'delete_account'
         ]);
 
         $this->assertDatabaseHas('user_requests', [
             'id' => $req->id,
-            'status' => 'open'
+            'status' => 'open',
+            'type' => 'delete_account'
         ]);
     }
 

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Services\AuthService;
-use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -37,17 +37,10 @@ class LoginController extends Controller
      *     )
      * )
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'username' => 'required|string|max:255',
-            'password' => 'required|string',
-        ]);
-
-        $result = $this->auth->login(
-            $request->username,
-            $request->password
-        );
+        $data = $request->validated();
+        $result = $this->auth->login($data['username'], $data['password']);
 
         if (!$result['status']) {
             return response()->json([
