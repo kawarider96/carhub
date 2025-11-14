@@ -8,16 +8,20 @@ use App\Http\Requests\CarModelUpdateRequest;
 use App\Http\Resources\CarModelResource;
 use App\Models\CarModel;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class CarModelController extends Controller
+class CarModelController extends Controller implements HasMiddleware
 {
-    public function __construct()
-    {
-        // Csak bejelentkezett aktív user érheti el
-        $this->middleware(['auth:sanctum', 'active']);
+    public function __construct() {}
 
-        // Csak admin csinálhat CRUD-ot
-        $this->middleware('admin')->only(['store', 'update', 'destroy']);
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('auth:sanctum'),
+            new Middleware('active'),
+            new Middleware('admin', only: ['store', 'update', 'destroy']),
+        ];
     }
 
     /**

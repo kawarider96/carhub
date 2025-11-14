@@ -10,14 +10,22 @@ use App\Models\UserRequest;
 use App\Services\UserRequestService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class UserRequestApiController extends Controller
+class UserRequestApiController extends Controller implements HasMiddleware
 {
     public function __construct(
         protected UserRequestService $service
-    ) {
-        $this->middleware(['auth:sanctum', 'active']);
-        $this->middleware('admin')->only(['index', 'approve', 'reject']);
+    ) {}
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('auth:sanctum'),
+            new Middleware('active'),
+            new Middleware('admin', only: ['index', 'approve', 'reject']),
+        ];
     }
 
     /**
