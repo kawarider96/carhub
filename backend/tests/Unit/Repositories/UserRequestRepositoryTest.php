@@ -28,27 +28,27 @@ class UserRequestRepositoryTest extends TestCase
 
         $req = $this->repo->create([
             'user_id' => $user->id,
-            'status' => 'pending'
+            'status' => 'open'
         ]);
 
-        $this->assertDatabaseHas('delete_requests', [
+        $this->assertDatabaseHas('user_requests', [
             'id' => $req->id,
-            'status' => 'pending'
+            'status' => 'open'
         ]);
     }
 
     #[Test]
-    public function test_pending_requests()
+    public function test_open_requests()
     {
         UserRequest::factory()->count(3)->create([
-            'status' => 'pending'
+            'status' => 'open'
         ]);
 
         UserRequest::factory()->create([
             'status' => 'approved'
         ]);
 
-        $result = $this->repo->pending();
+        $result = $this->repo->open();
 
         $this->assertCount(3, $result);
     }
