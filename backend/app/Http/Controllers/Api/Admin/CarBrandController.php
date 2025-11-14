@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CarBrandStoreRequest;
-use App\Http\Requests\CarBrandUpdateRequest;
+use App\Http\Requests\Admin\CarBrand\StoreCarBrandRequest;
+use App\Http\Requests\Admin\CarBrand\UpdateCarBrandRequest;
 use App\Http\Resources\CarBrandResource;
 use App\Services\CarBrandService;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -19,7 +19,6 @@ class CarBrandController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth'),
             new Middleware('active'),
             new Middleware('admin', only: ['store', 'update', 'destroy']),
         ];
@@ -60,7 +59,7 @@ class CarBrandController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function store(CarBrandStoreRequest $request)
+    public function store(StoreCarBrandRequest $request)
     {
         $brand = $this->service->create($request->validated());
 
@@ -105,7 +104,7 @@ class CarBrandController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function update(CarBrandUpdateRequest $request, int $id)
+    public function update(UpdateCarBrandRequest $request, int $id)
     {
         $brand = $this->service->update($id, $request->validated());
 

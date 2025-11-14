@@ -37,22 +37,17 @@ class LoginController extends Controller
         }
 
         //Fiók zárolva?
-        if ($user->locked) {
+        if (!$user->is_active) {
             return response()->json(['message' => 'A fiók zárolva van'], 423);
-        }
-
-        //Aktív-e?
-        if (!$user->active) {
-            return response()->json(['message' => 'Inaktív felhasználó'], 401);
         }
 
         //Jelszó ellenőrzés
         if (!Hash::check($request->password, $user->password)) {
 
-            $user->failed_attempts++;
+            $user->failed_logins++;
 
-            if ($user->failed_attempts >= 5) {
-                $user->locked = true;
+            if ($user->failed_logins >= 5) {
+                $user->is_active = true;
             }
 
             $user->save();
@@ -60,8 +55,8 @@ class LoginController extends Controller
             return response()->json(['message' => 'Hibás felhasználónév vagy jelszó'], 401);
         }
 
-        //reset failed attempts
-        $user->failed_attempts = 0;
+        //reset failed logins
+        $user->failed_logins = 0;
         $user->save();
 
         //Token létrehozása
@@ -73,7 +68,7 @@ class LoginController extends Controller
             'user'    => [
                 'id'        => $user->id,
                 'full_name' => $user->full_name,
-                'type'      => $user->type,
+                'role'      => $user->role,
             ]
         ], 200);
     }

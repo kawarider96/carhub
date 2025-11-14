@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CarModelStoreRequest;
-use App\Http\Requests\CarModelUpdateRequest;
+use App\Http\Requests\Admin\CarModel\StoreCarModelRequest;
+use App\Http\Requests\Admin\CarModel\UpdateCarModelRequest;
 use App\Http\Resources\CarModelResource;
 use App\Models\CarModel;
 use Illuminate\Http\Request;

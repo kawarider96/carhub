@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
-class UserRequestApiController extends Controller implements HasMiddleware
+class UserRequestController extends Controller implements HasMiddleware
 {
     public function __construct(
         protected UserRequestService $service
@@ -78,25 +78,6 @@ class UserRequestApiController extends Controller implements HasMiddleware
         }
 
         return response()->json(new UserRequestResource($exists));
-    }
-
-    /**
-     * @OA\Get(
-     *   path="/api/requests/me",
-     *   summary="Saját felhasználói kérés lekérdezése (USER)",
-     *   tags={"UserRequests"},
-     *   security={{"sanctum":{}}},
-     *   @OA\Response(
-     *     response=200,
-     *     description="Sikeres lekérdezés",
-     *     @OA\JsonContent(ref="#/components/schemas/UserRequestResource")
-     *   )
-     * )
-     */
-    public function me(): JsonResponse
-    {
-        $req = $this->service->userRequest(auth()->id());
-        return response()->json(new UserRequestResource($req));
     }
 
     /**
