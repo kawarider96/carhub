@@ -8,6 +8,7 @@ use App\Models\CarModel;
 use App\Repositories\FavoriteCarRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class FavoriteCarRepositoryTest extends TestCase
 {
@@ -21,6 +22,7 @@ class FavoriteCarRepositoryTest extends TestCase
         $this->repo = new FavoriteCarRepository(new FavoriteCar);
     }
 
+    #[Test]
     public function test_create_favorite_car()
     {
         $user = User::factory()->create();
@@ -39,6 +41,7 @@ class FavoriteCarRepositoryTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function test_get_favorite_cars_by_user()
     {
         $user = User::factory()->create();
@@ -47,7 +50,7 @@ class FavoriteCarRepositoryTest extends TestCase
             'user_id' => $user->id
         ]);
 
-        $result = $this->repo->forUser($user->id);
+        $result = $this->repo->getByUser($user->id);
 
         $this->assertCount(2, $result);
     }

@@ -6,6 +6,7 @@ use App\Models\CarBrand;
 use App\Repositories\CarBrandRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class BaseRepositoryTest extends TestCase
 {
@@ -19,6 +20,7 @@ class BaseRepositoryTest extends TestCase
         $this->repo = new CarBrandRepository(new CarBrand);
     }
 
+    #[Test]
     public function test_it_creates_record()
     {
         $brand = $this->repo->create(['name' => 'BMW']);
@@ -29,6 +31,7 @@ class BaseRepositoryTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function test_it_finds_record_by_id()
     {
         $brand = CarBrand::factory()->create(['name' => 'Audi']);
@@ -38,6 +41,7 @@ class BaseRepositoryTest extends TestCase
         $this->assertEquals('Audi', $found->name);
     }
 
+    #[Test]
     public function test_it_returns_all_records()
     {
         CarBrand::factory()->count(3)->create();
@@ -47,6 +51,7 @@ class BaseRepositoryTest extends TestCase
         $this->assertCount(3, $all);
     }
 
+    #[Test]
     public function test_it_updates_record()
     {
         $brand = CarBrand::factory()->create(['name' => 'OldName']);
@@ -60,6 +65,7 @@ class BaseRepositoryTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function test_it_deletes_record()
     {
         $brand = CarBrand::factory()->create();

@@ -4,7 +4,7 @@ namespace App\OpenApi\Schemas;
 
 /**
  * @OA\Schema(
- *     schema="DeleteRequest",
+ *     schema="UserRequest",
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=7),
  *     @OA\Property(property="user_id", type="integer", example=3),
@@ -13,4 +13,4 @@ namespace App\OpenApi\Schemas;
  *     @OA\Property(property="user", ref="#/components/schemas/User")
  * )
  */
-class DeleteRequestSchema {}
+class UserRequestSchema {}

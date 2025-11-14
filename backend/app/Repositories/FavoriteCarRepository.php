@@ -11,6 +11,12 @@ class FavoriteCarRepository extends BaseRepository
         parent::__construct($model);
     }
 
+    /**
+     * Visszaadja a felhasználó összes kedvenc autóját.
+     *
+     * @param int $userId
+     * @return \Illuminate\Support\Collection
+     */
     public function getByUser(int $userId)
     {
         return $this->model

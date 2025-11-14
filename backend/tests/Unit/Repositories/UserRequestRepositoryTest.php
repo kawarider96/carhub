@@ -2,24 +2,26 @@
 
 namespace Tests\Unit\Repositories;
 
-use App\Models\DeleteRequest;
+use App\Models\UserRequest;
 use App\Models\User;
-use App\Repositories\DeleteRequestRepository;
+use App\Repositories\UserRequestRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-class DeleteRequestRepositoryTest extends TestCase
+class UserRequestRepositoryTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected DeleteRequestRepository $repo;
+    protected UserRequestRepository $repo;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repo = new DeleteRequestRepository(new DeleteRequest);
+        $this->repo = new UserRequestRepository(new UserRequest);
     }
 
+    #[Test]
     public function test_create_delete_request()
     {
         $user = User::factory()->create();
@@ -35,13 +37,14 @@ class DeleteRequestRepositoryTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function test_pending_requests()
     {
-        DeleteRequest::factory()->count(3)->create([
+        UserRequest::factory()->count(3)->create([
             'status' => 'pending'
         ]);
 
-        DeleteRequest::factory()->create([
+        UserRequest::factory()->create([
             'status' => 'approved'
         ]);
 
@@ -50,11 +53,12 @@ class DeleteRequestRepositoryTest extends TestCase
         $this->assertCount(3, $result);
     }
 
+    #[Test]
     public function test_by_user()
     {
         $user = User::factory()->create();
 
-        $req = DeleteRequest::factory()->create([
+        $req = UserRequest::factory()->create([
             'user_id' => $user->id
         ]);
 
