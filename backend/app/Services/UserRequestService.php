@@ -2,19 +2,19 @@
 
 namespace App\Services;
 
-use App\Repositories\DeleteRequestRepository;
+use App\Repositories\UserRequestRepository;
 use App\Repositories\UserRepository;
 
-class DeleteRequestService
+class UserRequestService
 {
     public function __construct(
-        protected DeleteRequestRepository $requests,
+        protected UserRequestRepository $requests,
         protected UserRepository $users
     ) {}
 
-    public function pending()
+    public function open()
     {
-        return $this->requests->pending();
+        return $this->requests->open();
     }
 
     public function userRequest(int $userId)
@@ -30,7 +30,7 @@ class DeleteRequestService
 
         return $this->requests->create([
             'user_id' => $userId,
-            'status' => 'pending'
+            'status' => 'open'
         ]);
     }
 

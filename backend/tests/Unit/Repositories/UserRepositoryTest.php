@@ -24,7 +24,7 @@ class UserRepositoryTest extends TestCase
     public function test_it_creates_user()
     {
         $user = $this->repo->create([
-            'name' => 'Test User',
+            'full_name' => 'Test User',
             'username' => 'testuser',
             'password' => 'pw',
             'role' => 'user',

@@ -16,9 +16,9 @@ return new class extends Migration
                   ->constrained('users')
                   ->cascadeOnUpdate()
                   ->cascadeOnDelete();
-            $table->string('type', 30); // DELETE_ACCOUNT vagy MISSING_BRAND
+            $table->string('type', 30); // delete_account vagy missing_brand
             $table->json('payload')->nullable();
-            $table->string('status', 20)->default('OPEN'); // OPEN, APPROVED, REJECTED
+            $table->string('status', 20)->default('open'); // open, approved, rejected
             $table->foreignId('handled_by')
                   ->nullable()
                   ->constrained('users')
