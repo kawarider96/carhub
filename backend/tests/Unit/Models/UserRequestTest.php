@@ -52,6 +52,20 @@ class UserRequestTest extends TestCase
         $this->assertEquals('BMW', $req->payload['model']);
     }
 
+    #[Test]                                                                                                                             
+    public function it_has_handler_relation()                                                                                           
+    {                                                                                                                                   
+    $admin = User::factory()->create(['role' => 'admin']);                                                                              
+                                                                                                                                        
+        $req = UserRequest::factory()->create([                                                                                         
+            'handled_by' => $admin->id,                                                                                                 
+        ]);                                                                                                                             
+                                                                                                                                        
+        $this->assertInstanceOf(User::class, $req->handler);
+        $this->assertEquals($admin->id, $req->handler->id);                                                                             
+                                                                                                                                        
+    }                                
+    
     #[Test]
     public function timestamps_are_carbon_instances()
     {
