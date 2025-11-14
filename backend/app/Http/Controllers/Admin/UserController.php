@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\User\StoreUserRequest;
+use App\Http\Requests\Admin\User\UpdateUserRequest;
+use App\Models\User as UserModel;
 use App\Services\UserService;
-use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -32,6 +34,7 @@ class UserController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', UserModel::class);
         return response()->json($this->users->all());
     }
 
@@ -68,16 +71,10 @@ class UserController extends Controller
      *     )
      * )
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $request->validate([
-            'name'     => 'required|string',
-            'username' => 'required|unique:users,username',
-            'password' => 'required|string|confirmed|min:8',
-            'role'     => 'required|in:admin,user',
-        ]);
-
-        $data = $request->all();
+        $this->authorize('create', UserModel::class);
+        $data = $request->validated();
         $data['password'] = bcrypt($data['password']);
         $data['is_active'] = true;
         $data['failed_logins'] = 0;
@@ -118,15 +115,13 @@ class UserController extends Controller
      *     )
      * )
      */
-    public function update(Request $request, $id)
+    public function update(UpdateUserRequest $request, $id)
     {
-        $data = $request->except('password');
-
-        if ($request->password) {
-            $request->validate([
-                'password' => 'confirmed|min:8',
-            ]);
-            $data['password'] = bcrypt($request->password);
+        $target = UserModel::query()->findOrFail((int) $id);
+        $this->authorize('update', $target);
+        $data = $request->validated();
+        if (isset($data['password'])) {
+            $data['password'] = bcrypt($data['password']);
         }
 
         $user = $this->users->update($id, $data);
@@ -152,6 +147,8 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
+        $target = UserModel::query()->findOrFail((int) $id);
+        $this->authorize('delete', $target);
         $this->users->delete($id);
         return response()->json([], 204);
     }
@@ -177,6 +174,8 @@ class UserController extends Controller
      */
     public function lock($id)
     {
+        $target = UserModel::query()->findOrFail((int) $id);
+        $this->authorize('lock', $target);
         return response()->json($this->users->lock($id));
     }
 
@@ -201,6 +200,8 @@ class UserController extends Controller
      */
     public function unlock($id)
     {
+        $target = UserModel::query()->findOrFail((int) $id);
+        $this->authorize('unlock', $target);
         return response()->json($this->users->unlock($id));
     }
 }

@@ -56,7 +56,7 @@ class CarImage extends Model
     /**
      * A képhez tartozó kedvenc autó.
      *
-     * @return BelongsTo<FavoriteCar, self>
+     * @return BelongsTo<FavoriteCar, CarImage>
      */
     public function favoriteCar(): BelongsTo
     {

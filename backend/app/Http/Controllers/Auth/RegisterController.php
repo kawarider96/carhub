@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\AuthService;
-use Illuminate\Http\Request;
 
 class RegisterController extends Controller
 {
@@ -37,15 +37,10 @@ class RegisterController extends Controller
      *     )
      * )
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $request->validate([
-            'full_name' => 'required|string',
-            'username'  => 'required|string|unique:users,username',
-            'password'  => 'required|string|confirmed|min:8',
-        ]);
-
-        $user = $this->auth->register($request->all());
+        $data = $request->validated();
+        $user = $this->auth->register($data);
 
         return response()->json([
             'status' => true,

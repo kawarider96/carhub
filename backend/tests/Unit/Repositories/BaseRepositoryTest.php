@@ -44,7 +44,9 @@ class BaseRepositoryTest extends TestCase
     #[Test]
     public function test_it_returns_all_records()
     {
-        CarBrand::factory()->count(3)->create();
+        CarBrand::factory()->create(['name' => 'Ford']);
+        CarBrand::factory()->create(['name' => 'Audi']);
+        CarBrand::factory()->create(['name' => 'Toyota']);
 
         $all = $this->repo->all();
 
