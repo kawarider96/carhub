@@ -27,6 +27,17 @@ class CarImageTest extends TestCase
         ]);
     }
 
+    #[Test]                                                                                                                             
+    public function it_stores_mime_type()                                                                                               
+    {                                                                                                                                   
+        $image = CarImage::factory()->create([                                                                                              
+            'mime' => 'image/png',                                                                                                              
+        ]);                                                                                                                                 
+                                                                                                                                        
+        $this->assertEquals('image/png', $image->mime);                                                                                 
+                                                                                                                                        
+    }
+
     #[Test]
     public function it_belongs_to_a_favorite_car()
     {

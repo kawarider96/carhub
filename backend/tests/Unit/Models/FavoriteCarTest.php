@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\User;
 use App\Models\CarModel;
 use App\Models\FavoriteCar;
+use App\Models\CarImage;
 use PHPUnit\Framework\Attributes\Test;
 
 class FavoriteCarTest extends TestCase
@@ -33,6 +34,33 @@ class FavoriteCarTest extends TestCase
         ]);
     }
 
+    #[Test]                                                                                                                             
+    public function it_has_car_model_relationship()                                                                                     
+    {                                                                                                                                   
+    $model = CarModel::factory()->create();                                                                                             
+                                                                                                                                        
+        $car = FavoriteCar::factory()->create([                                                                                         
+            'car_model_id' => $model->id,                                                                                               
+        ]);                                                                                                                             
+                                                                                                                                        
+        $this->assertInstanceOf(CarModel::class, $car->carModel);                                                                       
+        $this->assertEquals($model->id, $car->carModel->id);                                                                            
+                                                                                                                                        
+    }
+
+    #[Test]                                                                                                                             
+    public function it_has_images_relationship()                                                                                        
+    {                                                                                                                                   
+    $fav = FavoriteCar::factory()->create();                                                                                            
+                                                                                                                                        
+        CarImage::factory()->count(2)->create([                                                                                         
+            'favorite_car_id' => $fav->id,                                                                                              
+        ]);                                                                                                                             
+                                                                                                                                        
+        $this->assertCount(2, $fav->images);                                                                                            
+                                                                                                                                        
+    }
+    
     #[Test]
     public function it_has_user_relationship()
     {

@@ -30,6 +30,21 @@ class CarBrandRepositoryTest extends TestCase
         ]);
     }
 
+    #[Test]                                                                                                                             
+    public function test_exists_by_name_true_when_present()                                                                             
+    {
+        CarBrand::factory()->create(['name' => 'Toyota']);                                                                                  
+                                                                                                                                        
+        $this->assertTrue($this->repo->existsByName('Toyota'));                                                                         
+                                                                                                                                        
+    }                                                                                                                                   
+                                                                                                                                        
+    #[Test]                                                                                                                             
+    public function test_exists_by_name_false_when_absent()                                                                             
+    {                                                                                                                                   
+        $this->assertFalse($this->repo->existsByName('NonExistingBrand'));                                                                  
+    }
+
     #[Test]
     public function test_find_existing_brand_by_name()
     {
