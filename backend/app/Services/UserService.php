@@ -15,6 +15,11 @@ class UserService
         return $this->users->all();
     }
 
+    public function find(int $id)
+    {
+        return $this->users->find($id);
+    }
+
     public function create(array $data)
     {
         // admin oldali user létrehozás

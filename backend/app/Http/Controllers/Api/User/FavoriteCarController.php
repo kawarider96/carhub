@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\FavoriteCarStoreRequest;
-use App\Http\Requests\FavoriteCarUpdateRequest;
+use App\Http\Requests\User\StoreFavoriteCarRequest;
+use App\Http\Requests\User\UpdateFavoriteCarRequest;
 use App\Http\Resources\FavoriteCarResource;
 use App\Models\FavoriteCar;
 use Illuminate\Http\Request;
@@ -35,7 +35,7 @@ class FavoriteCarController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         return FavoriteCarResource::collection(
-            FavoriteCar::with('model.brand')
+            FavoriteCar::with('carModel')
                 ->where('user_id', $request->user()->id)
                 ->get()
         );
@@ -60,7 +60,7 @@ class FavoriteCarController extends Controller implements HasMiddleware
      *     @OA\Response(response=201, description="Létrehozva")
      * )
      */
-    public function store(FavoriteCarStoreRequest $request)
+    public function store(StoreFavoriteCarRequest $request)
     {
         $favoriteCar = FavoriteCar::create([
             'user_id'       => $request->user()->id,
@@ -116,7 +116,7 @@ class FavoriteCarController extends Controller implements HasMiddleware
      *     @OA\Response(response=200, description="Frissítve")
      * )
      */
-    public function update(FavoriteCarUpdateRequest $request, FavoriteCar $favoriteCar)
+    public function update(UpdateFavoriteCarRequest $request, FavoriteCar $favoriteCar)
     {
         if ($favoriteCar->user_id !== $request->user()->id) {
             abort(403);

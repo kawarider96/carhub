@@ -15,8 +15,8 @@ use Illuminate\Support\Facades\Hash;
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(
- *             required={"name","username","password","password_confirmation"},
- *             @OA\Property(property="name", type="string", example="Király Krisztián"),
+ *             required={"full_name","username","password","password_confirmation"},
+ *             @OA\Property(property="full_name", type="string", example="Király Krisztián"),
  *             @OA\Property(property="username", type="string", example="neo"),
  *             @OA\Property(property="password", type="string", example="Password123!"),
  *             @OA\Property(property="password_confirmation", type="string", example="Password123!")
@@ -34,10 +34,10 @@ class RegisterController extends Controller
             'full_name'       => $request->full_name,
             'username'        => $request->username,
             'password'        => Hash::make($request->password),
-            'type'            => 'user',
-            'active'          => true,
+            'role'            => 'user',
+            'is_active'          => true,
             'locked'          => false,
-            'failed_attempts' => 0,
+            'failed_logins' => 0,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -48,7 +48,7 @@ class RegisterController extends Controller
                 'id'        => $user->id,
                 'full_name' => $user->full_name,
                 'username'  => $user->username,
-                'type'      => $user->type,
+                'role'      => $user->role,
             ],
             'token' => $token
         ], 201);

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UserStoreRequest;
-use App\Http\Requests\UserUpdateRequest;
+use App\Http\Requests\Admin\User\StoreUserRequest;
+use App\Http\Requests\Admin\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Services\UserService;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -62,7 +62,7 @@ class UserController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function store(UserStoreRequest $request)
+    public function store(StoreUserRequest $request)
     {
         $user = $this->service->create($request->validated());
 
@@ -92,19 +92,54 @@ class UserController extends Controller implements HasMiddleware
     }
 
     /**
-     * @OA\Patch(
-     *     path="/users/me",
+     * @OA\Put(
+     *     path="/users",
      *     summary="Saját profil módosítása",
      *     tags={"Users"},
-     *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/UserUpdateRequest")),
-     *     @OA\Response(response=200, @OA\JsonContent(ref="#/components/schemas/User"))
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/UserUpdateRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Sikeres frissítés",
+     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *     )
      * )
      */
-    public function update(UserUpdateRequest $request)
+    public function update(UpdateUserRequest $request)
     {
         $user = $this->service->update(auth()->id(), $request->validated());
 
         return UserResource::make($user);
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/users/{id}",
+     *     summary="Felhasználó módosítása (admin)",
+     *     tags={"Users"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/UpdateUserRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Felhasználó frissítve",
+     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *     )
+     * )
+     */
+    public function adminUpdate(UpdateUserRequest $request, int $id)
+    {
+        $user = $this->service->update($id, $request->validated());
+        return new UserResource($user);
     }
 
     /**

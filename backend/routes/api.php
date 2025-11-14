@@ -40,6 +40,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Autó törlési kérelem indítása
     Route::post('/user/delete-request', [UserRequestController::class, 'store']);
 
+    Route::get('/car-models', [CarModelController::class, 'index']);
+    Route::get('/car-brands', [CarBrandController::class, 'index']);
+    
     /*
     |--------------------------------------------------------------------------
     | ADMIN ROUTES
@@ -48,10 +51,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('admin')->group(function () {
 
         // Márkák CRUD
-        Route::apiResource('car-brands', CarBrandController::class);
+        // CAR BRAND CRUD
+        Route::post('/car-brands', [CarBrandController::class, 'store']);
+        Route::get('/car-brands/{id}', [CarBrandController::class, 'show']);
+        Route::put('/car-brands/{id}', [CarBrandController::class, 'update']);
+        Route::delete('/car-brands/{id}', [CarBrandController::class, 'destroy']);
+
 
         // Modellek CRUD
-        Route::apiResource('car-models', CarModelController::class);
+        Route::post('/car-models', [CarModelController::class, 'store']);
+        Route::get('/car-models/{id}', [CarModelController::class, 'show']);
+        Route::put('/car-models/{id}', [CarModelController::class, 'update']);
+        Route::delete('/car-models/{id}', [CarModelController::class, 'destroy']);
+
 
         // Felhasználók törlési kérelmeinek kezelése
         Route::get('/user/delete-requests', [UserRequestController::class, 'index']);
@@ -66,7 +78,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // Admin listázni tudja a usereket
         Route::get('/users', [UserController::class, 'index']);
         Route::get('/users/{id}', [UserController::class, 'show']);
-        Route::put('/users/{id}', [UserController::class, 'update']);
+        Route::put('/users', [UserController::class, 'update']);
+        Route::put('/users/{id}', [UserController::class, 'adminUpdate']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
     });
 });
