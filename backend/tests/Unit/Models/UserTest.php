@@ -37,6 +37,23 @@ class UserTest extends TestCase
         $this->assertTrue(password_verify($plain, $user->password));
     }
 
+    #[Test]                                                                                                                             
+    public function password_is_not_rehashed_if_already_hashed(): void                                                                  
+    {                                                                                                                                   
+    $plain = 'Secret123!';                                                                                                              
+    $hashed = password_hash($plain, PASSWORD_BCRYPT);                                                                                   
+                                                                                                                                        
+        $user = User::factory()->create([                                                                                               
+            'password' => $hashed,                                                                                                      
+        ]);                                                                                                                             
+                                                                                                                                        
+        $this->assertEquals($hashed, $user->password);                                                                                  
+        $this->assertTrue(password_verify($plain, $user->password));                                                                    
+        $this->assertStringStartsWith('$2y$', $user->password);                                                                         
+        $this->assertEquals(60, strlen($user->password));                                                                               
+                                                                                                                                        
+    }                   
+    
     #[Test]
     public function it_knows_if_user_is_admin(): void
     {
