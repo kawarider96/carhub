@@ -8,13 +8,19 @@ use App\Http\Requests\FavoriteCarUpdateRequest;
 use App\Http\Resources\FavoriteCarResource;
 use App\Models\FavoriteCar;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class FavoriteCarController extends Controller
+class FavoriteCarController extends Controller implements HasMiddleware
 {
-    public function __construct()
+    public function __construct() {}
+
+    public static function middleware(): array
     {
-        // Csak bejelentkezett aktív felhasználók
-        $this->middleware(['auth:sanctum', 'active']);
+        return [
+            new Middleware('auth:sanctum'),
+            new Middleware('active'),
+        ];
     }
 
     /**

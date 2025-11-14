@@ -7,14 +7,22 @@ use App\Http\Requests\CarBrandStoreRequest;
 use App\Http\Requests\CarBrandUpdateRequest;
 use App\Http\Resources\CarBrandResource;
 use App\Services\CarBrandService;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class CarBrandController extends Controller
+class CarBrandController extends Controller implements HasMiddleware
 {
     public function __construct(
         protected CarBrandService $service
-    ) {
-        $this->middleware(['auth', 'active']);   // csak bejelentkezett aktív user
-        $this->middleware('admin')->only(['store', 'update', 'destroy']);
+    ) {}
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('auth'),
+            new Middleware('active'),
+            new Middleware('admin', only: ['store', 'update', 'destroy']),
+        ];
     }
 
     /**

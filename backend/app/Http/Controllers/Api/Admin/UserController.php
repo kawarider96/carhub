@@ -7,18 +7,24 @@ use App\Http\Requests\UserStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Resources\UserResource;
 use App\Services\UserService;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class UserController extends Controller
+class UserController extends Controller implements HasMiddleware
 {
     public function __construct(
         protected UserService $service
-    ) {
-        $this->middleware(['auth', 'active']);
+    ) {}
 
-        // admin-only
-        $this->middleware(['admin'])->only([
-            'index', 'store', 'destroy', 'adminUpdate', 'lock', 'unlock'
-        ]);
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('auth:sanctum'),
+            new Middleware('active'),
+            new Middleware('admin', only: [
+                'index', 'store', 'destroy', 'adminUpdate', 'lock', 'unlock'
+            ]),
+        ];
     }
 
     /**
