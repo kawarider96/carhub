@@ -6,6 +6,8 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\CarBrand;
 use App\Models\CarModel;
+use App\Models\User;                                                                                                                
+use App\Models\FavoriteCar;
 use PHPUnit\Framework\Attributes\Test;
 
 class CarModelTest extends TestCase
@@ -28,6 +30,22 @@ class CarModelTest extends TestCase
         ]);
     }
 
+    #[Test]                                                                                                                             
+    public function it_has_favorite_cars_relationship()                                                                                 
+    {                                                                                                                                   
+    $model = CarModel::factory()->create();
+    $user  = User::factory()->create();                                                                                                 
+                                                                                                                                        
+        FavoriteCar::factory()->count(3)->create([                                                                                      
+            'car_model_id' => $model->id,                                                                                               
+            'user_id'      => $user->id,                                                                                                
+        ]);                                                                                                                             
+                                                                                                                                        
+        $this->assertCount(3, $model->favoriteCars);                                                                                    
+        $this->assertInstanceOf(\App\Models\FavoriteCar::class, $model->favoriteCars->first());                                         
+                                                                                                                                        
+    }
+    
     #[Test]
     public function it_belongs_to_a_brand()
     {
