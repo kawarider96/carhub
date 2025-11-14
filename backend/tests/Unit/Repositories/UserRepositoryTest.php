@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class UserRepositoryTest extends TestCase
 {
@@ -19,6 +20,7 @@ class UserRepositoryTest extends TestCase
         $this->repo = new UserRepository(new User);
     }
 
+    #[Test]
     public function test_it_creates_user()
     {
         $user = $this->repo->create([
@@ -36,6 +38,7 @@ class UserRepositoryTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function test_find_by_username()
     {
         User::factory()->create(['username' => 'john']);
@@ -46,6 +49,7 @@ class UserRepositoryTest extends TestCase
         $this->assertEquals('john', $found->username);
     }
 
+    #[Test]
     public function test_lock_user()
     {
         $user = User::factory()->create(['is_active' => true]);
@@ -55,6 +59,7 @@ class UserRepositoryTest extends TestCase
         $this->assertFalse($updated->is_active);
     }
 
+    #[Test]
     public function test_unlock_user()
     {
         $user = User::factory()->create([

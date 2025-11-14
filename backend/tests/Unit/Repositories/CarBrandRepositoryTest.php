@@ -6,6 +6,7 @@ use App\Models\CarBrand;
 use App\Repositories\CarBrandRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class CarBrandRepositoryTest extends TestCase
 {
@@ -19,6 +20,7 @@ class CarBrandRepositoryTest extends TestCase
         $this->repo = new CarBrandRepository(new CarBrand);
     }
 
+    #[Test]
     public function test_create_brand()
     {
         $brand = $this->repo->create(['name' => 'BMW']);
@@ -28,6 +30,7 @@ class CarBrandRepositoryTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function test_find_existing_brand_by_name()
     {
         CarBrand::factory()->create(['name' => 'Audi']);

@@ -15,4 +15,9 @@ class CarBrandRepository extends BaseRepository
     {
         return $this->model->where('name', $name)->exists();
     }
+
+    public function findByName(string $name): ?CarBrand
+    {
+        return $this->model->where('name', $name)->first();
+    }
 }

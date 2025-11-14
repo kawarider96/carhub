@@ -10,6 +10,7 @@ use App\Models\CarBrand;
 use App\Repositories\CarImageRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class CarImageRepositoryTest extends TestCase
 {
@@ -23,6 +24,7 @@ class CarImageRepositoryTest extends TestCase
         $this->repo = new CarImageRepository(new CarImage);
     }
 
+    #[Test]
     public function test_it_creates_car_image()
     {
         $brand = CarBrand::factory()->create();
@@ -51,6 +53,7 @@ class CarImageRepositoryTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function test_it_gets_images_by_favorite_car()
     {
         $brand = CarBrand::factory()->create();
