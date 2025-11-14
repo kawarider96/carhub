@@ -20,9 +20,9 @@ use Carbon\CarbonImmutable;
  * ───────────────────────────────────────────────────────────
  * @property int                          $id
  * @property int                          $user_id           A kérelmet indító felhasználó
- * @property string                       $type              (DELETE_ACCOUNT | MISSING_BRAND)
+ * @property string                       $type              (delete_account | missing_brand)
  * @property array|null                   $payload           Extra információ (JSON)
- * @property string                       $status            OPEN | APPROVED | REJECTED
+ * @property string                       $status            open | approved | rejected
  * @property int|null                     $handled_by        Admin azonosító
  * @property CarbonImmutable|null         $handled_at        Mikor kezelte az admin
  * @property CarbonImmutable|null         $created_at

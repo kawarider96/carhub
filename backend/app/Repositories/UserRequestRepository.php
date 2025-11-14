@@ -12,14 +12,14 @@ class UserRequestRepository extends BaseRepository
     }
 
     /**
-     * Visszaadja az összes "pending" státuszú törlési kérelmet.
+     * Visszaadja az összes "open" státuszú törlési kérelmet.
      *
      * @return \Illuminate\Support\Collection
      */
-    public function pending()
+    public function open()
     {
         return $this->model
-            ->where('status', 'pending')
+            ->where('status', 'open')
             ->get();
     }
 
