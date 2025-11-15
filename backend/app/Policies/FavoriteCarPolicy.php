@@ -18,13 +18,13 @@ class FavoriteCarPolicy
         return $user->isAdmin() || $favoriteCar->user_id === $user->id;
     }
 
-    public function create(User $user): bool
+    public function update(User $user, FavoriteCar $favoriteCar): bool
     {
-        // Csak aktív felhasználó hozhat létre kedvenc autót
-        return $user->is_active === true;
+        // Admin nem módosíthat más tulajdonában lévő kedvenc autót
+        return $favoriteCar->user_id === $user->id;
     }
 
-    public function update(User $user, FavoriteCar $favoriteCar): bool
+    public function create(User $user, FavoriteCar $favoriteCar): bool
     {
         // Admin nem módosíthat más tulajdonában lévő kedvenc autót
         return $favoriteCar->user_id === $user->id;
@@ -34,17 +34,6 @@ class FavoriteCarPolicy
     {
         // Admin nem módosíthat (törölhet) user tulajdont
         return $favoriteCar->user_id === $user->id;
-    }
-
-    public function restore(User $user, FavoriteCar $favoriteCar): bool
-    {
-        // Nem engedélyezett művelet
-        return false;
-    }
-
-    public function forceDelete(User $user, FavoriteCar $favoriteCar): bool
-    {
-        return false;
     }
 }
 

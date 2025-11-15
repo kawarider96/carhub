@@ -7,122 +7,266 @@ use App\Http\Requests\Admin\CarModel\StoreCarModelRequest;
 use App\Http\Requests\Admin\CarModel\UpdateCarModelRequest;
 use App\Http\Resources\CarModelResource;
 use App\Models\CarModel;
-use Illuminate\Http\Request;
+use App\Services\CarModelService;
+use App\Traits\ApiResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
 class CarModelController extends Controller implements HasMiddleware
 {
-    public function __construct() {}
+    use ApiResponse;
+
+    public function __construct(
+        protected CarModelService $service
+    ) {}
 
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:sanctum'),
-            new Middleware('active'),
-            new Middleware('admin', only: ['store', 'update', 'destroy']),
+            new Middleware('admin', only: ['update', 'destroy']),
         ];
     }
 
     /**
      * @OA\Get(
-     *     path="/api/car-models",
+     *     path="/car-models",
      *     summary="Autó típusok listázása",
      *     tags={"Car Models"},
+     *
      *     @OA\Response(
      *         response=200,
-     *         description="Lista"
+     *         description="Autó típusok listája",
+     *         @OA\JsonContent(ref="#/components/schemas/CarModelListResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=423,
+     *         description="A felhasználó zárolva van",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
      *     )
      * )
      */
     public function index()
     {
-        return CarModelResource::collection(
-            CarModel::with('brand')->orderBy('name')->get()
-        );
+        $models = CarModelResource::collection($this->service->all());
+
+        return $this->success($models, 'Autó típusok listája', 200);
     }
 
     /**
      * @OA\Post(
-     *     path="/api/car-models",
-     *     summary="Új autó típus létrehozása (ADMIN)",
+     *     path="/car-models",
+     *     summary="Új autó típus létrehozása (admin)",
      *     tags={"Car Models"},
-     *     security={{"sanctum":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             required={"car_brand_id","name"},
-     *             @OA\Property(property="car_brand_id", type="integer", example=1),
-     *             @OA\Property(property="name", type="string", example="M4 Competition")
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/CarModelStoreRequest")
      *     ),
-     *     @OA\Response(response=201, description="Létrehozva")
+     *
+     *     @OA\Response(
+     *         response=201,
+     *         description="Autó típus létrehozva",
+     *         @OA\JsonContent(ref="#/components/schemas/CarModelSingleResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=400,
+     *         description="Hibás kérés",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Nincs jogosultság (admin szükséges)",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validációs hiba",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=423,
+     *         description="A felhasználó zárolva van",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
      * )
      */
-    public function store(CarModelStoreRequest $request)
+    public function store(StoreCarModelRequest $request)
     {
-        $model = CarModel::create([
-            'car_brand_id' => $request->car_brand_id,
-            'name'         => $request->name,
-        ]);
+        $model = $this->service->create($request->validated());
 
-        return new CarModelResource($model);
+        return $this->success(CarModelResource::make($model), 'Autó típus létrehozva', 200);
     }
 
     /**
      * @OA\Get(
-     *     path="/api/car-models/{id}",
-     *     summary="Egy autó típus adatainak lekérése",
+     *     path="/car-models/{id}",
+     *     summary="Autó típus adatainak lekérése",
      *     tags={"Car Models"},
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         required=true,
      *         @OA\Schema(type="integer")
      *     ),
-     *     @OA\Response(response=200, description="Megjelenítve"),
-     *     @OA\Response(response=404, description="Nem található")
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Autó típus részletei",
+     *         @OA\JsonContent(ref="#/components/schemas/CarModelSingleResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="Nem található",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=423,
+     *         description="A felhasználó zárolva van",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
      * )
      */
     public function show(CarModel $carModel)
     {
-        return new CarModelResource($carModel->load('brand'));
+        return $this->success(CarModelResource::make($carModel->load('brand')), 'Autó típus adatai', 200);
     }
 
     /**
      * @OA\Put(
-     *     path="/api/car-models/{id}",
-     *     summary="Autó típus frissítése (ADMIN)",
+     *     path="/car-models/{id}",
+     *     summary="Autó típus módosítása (admin)",
      *     tags={"Car Models"},
-     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
      *     @OA\RequestBody(
-     *         @OA\JsonContent(
-     *             @OA\Property(property="car_brand_id", type="integer", example=1),
-     *             @OA\Property(property="name", type="string", example="M3 Competition")
-     *         )
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/CarModelUpdateRequest")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Autó típus frissítve",
+     *         @OA\JsonContent(ref="#/components/schemas/CarModelSingleResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Nincs jogosultság (admin required)",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="Nem található",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validációs hiba",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=423,
+     *         description="A felhasználói fiók zárolva",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
      *     )
      * )
      */
-    public function update(CarModelUpdateRequest $request, CarModel $carModel)
+    public function update(UpdateCarModelRequest $request, CarModel $carModel)
     {
-        $carModel->update($request->validated());
+        $updated = $this->service->update($carModel->id, $request->validated());
 
-        return new CarModelResource($carModel);
+        return $this->success(CarModelResource::make($updated), 'Autó típus frissítve', 200);
     }
 
     /**
      * @OA\Delete(
-     *     path="/api/car-models/{id}",
-     *     summary="Autó típus törlése (ADMIN)",
+     *     path="/car-models/{id}",
+     *     summary="Autó típus törlése (admin)",
      *     tags={"Car Models"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Response(response=204, description="Törölve")
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Sikeresen törölve",
+     *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Nincs jogosultság (admin required)",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="Nem található",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=423,
+     *         description="Felhasználó zárolva",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
      * )
      */
     public function destroy(CarModel $carModel)
     {
-        $carModel->delete();
+        $this->service->delete($carModel->id);
 
-        return response()->noContent();
+        return $this->success(null, 'Típus sikeresen törölve', 200);
     }
 }

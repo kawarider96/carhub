@@ -15,7 +15,7 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'user_id' => ['required', 'integer', 'exists:users,id'],
-            'type'    => ['required', 'in:DELETE_ACCOUNT,MISSING_BRAND'],
+            'type'    => ['required', 'in:delete_account,missing_brand'],
             'payload' => ['nullable', 'array'],
         ];
     }
@@ -35,7 +35,7 @@ class StoreUserRequest extends FormRequest
             'user_id.required' => 'A :attribute megadása kötelező.',
             'user_id.exists'   => 'A megadott :attribute nem létezik.',
             'type.required'    => 'A :attribute megadása kötelező.',
-            'type.in'          => 'A :attribute csak a megengedett értékek egyike lehet.',
+            'type.in'          => 'A :attribute csak a megengedett értékek egyike lehet. (delete_account, missing_brand)',
         ];
     }
 }

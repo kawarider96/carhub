@@ -18,12 +18,4 @@ class CarModelRepository extends BaseRepository
             ->orderBy('name')
             ->get();
     }
-
-    public function existsForBrand(int $brandId, string $name): bool
-    {
-        return $this->model
-            ->where('car_brand_id', $brandId)
-            ->where('name', $name)
-            ->exists();
-    }
 }
