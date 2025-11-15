@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Repositories;
 
 use App\Models\CarBrand;
 use App\Models\CarModel;
 use App\Repositories\CarModelRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class CarModelRepositoryTest extends TestCase
 {
@@ -18,111 +20,137 @@ class CarModelRepositoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repo = new CarModelRepository(new CarModel);
+        $this->repo = new CarModelRepository(new CarModel());
     }
 
-    #[Test]
-    public function it_returns_models_only_for_given_brand()
-    {
-        $brandA = CarBrand::factory()->create();
-        $brandB = CarBrand::factory()->create();
-
-        // brand A modellek
-        $m1 = CarModel::factory()->create([
-            'car_brand_id' => $brandA->id,
-            'name' => 'Amodel'
-        ]);
-
-        $m2 = CarModel::factory()->create([
-            'car_brand_id' => $brandA->id,
-            'name' => 'Bmodel'
-        ]);
-
-        // brand B modell
-        CarModel::factory()->create([
-            'car_brand_id' => $brandB->id,
-            'name' => 'Xmodel'
-        ]);
-
-        $result = $this->repo->getByBrand($brandA->id);
-
-        $this->assertCount(2, $result);
-        $this->assertEqualsCanonicalizing(
-            [$m1->id, $m2->id],
-            $result->pluck('id')->toArray()
-        );
-    }
+    // ─────────────────────────────────────────────
+    // 1) getByBrand – visszaadja a brand modelljeit
+    // ─────────────────────────────────────────────
 
     #[Test]
-    public function it_returns_models_ordered_by_name()
+    public function test_get_by_brand_returns_correct_models(): void
     {
         $brand = CarBrand::factory()->create();
 
-        $m1 = CarModel::factory()->create([
+        CarModel::factory()->count(3)->create([
             'car_brand_id' => $brand->id,
-            'name' => 'Zorro'
         ]);
 
-        $m2 = CarModel::factory()->create([
+        $models = $this->repo->getByBrand($brand->id);
+
+        $this->assertCount(3, $models);
+        $this->assertEquals($brand->id, $models->first()->car_brand_id);
+    }
+
+    // ─────────────────────────────────────────────
+    // 2) getByBrand – nincs modell → üres lista
+    // ─────────────────────────────────────────────
+
+    #[Test]
+    public function test_get_by_brand_returns_empty_when_no_models(): void
+    {
+        $models = $this->repo->getByBrand(99999);
+
+        $this->assertCount(0, $models);
+    }
+
+    // ─────────────────────────────────────────────
+    // 3) getByBrand – ABC sorrend
+    // ─────────────────────────────────────────────
+
+    #[Test]
+    public function test_get_by_brand_returns_models_sorted_by_name(): void
+    {
+        $brand = CarBrand::factory()->create();
+
+        CarModel::factory()->create([
             'car_brand_id' => $brand->id,
-            'name' => 'Alpha'
+            'name' => 'C-Class',
         ]);
 
-        $result = $this->repo->getByBrand($brand->id);
+        CarModel::factory()->create([
+            'car_brand_id' => $brand->id,
+            'name' => 'A-Class',
+        ]);
+
+        CarModel::factory()->create([
+            'car_brand_id' => $brand->id,
+            'name' => 'B-Class',
+        ]);
+
+        $models = $this->repo->getByBrand($brand->id);
 
         $this->assertEquals(
-            ['Alpha', 'Zorro'],
-            $result->pluck('name')->toArray()
+            ['A-Class', 'B-Class', 'C-Class'],
+            $models->pluck('name')->toArray()
         );
     }
 
+    // ─────────────────────────────────────────────
+    // 4) getByBrand – más márka modelljeit kizárja
+    // ─────────────────────────────────────────────
+
     #[Test]
-    public function it_checks_if_model_exists_for_brand()
+    public function test_get_by_brand_excludes_other_brands_models(): void
+    {
+        $brand1 = CarBrand::factory()->create();
+        $brand2 = CarBrand::factory()->create();
+
+        CarModel::factory()->create([
+            'car_brand_id' => $brand1->id,
+            'name' => 'Model-A',
+        ]);
+
+        CarModel::factory()->create([
+            'car_brand_id' => $brand2->id,
+            'name' => 'Model-B',
+        ]);
+
+        $models = $this->repo->getByBrand($brand1->id);
+
+        $this->assertCount(1, $models);
+        $this->assertEquals($brand1->id, $models->first()->car_brand_id);
+    }
+
+    // ─────────────────────────────────────────────
+    // 5 – ADVANCED: minden elem CarModel instance
+    // ─────────────────────────────────────────────
+
+    #[Test]
+    public function test_get_by_brand_returns_car_model_instances(): void
     {
         $brand = CarBrand::factory()->create();
 
-        CarModel::factory()->create([
-            'car_brand_id' => $brand->id,
-            'name' => 'Civic'
+        CarModel::factory()->count(2)->create([
+            'car_brand_id' => $brand->id
         ]);
 
-        $this->assertTrue(
-            $this->repo->existsForBrand($brand->id, 'Civic')
-        );
+        $models = $this->repo->getByBrand($brand->id);
 
-        $this->assertFalse(
-            $this->repo->existsForBrand($brand->id, 'Accord')
-        );
+        $models->each(function ($item) {
+            $this->assertInstanceOf(CarModel::class, $item);
+        });
     }
 
+    // ─────────────────────────────────────────────
+    // 6 – ADVANCED: 1 query fusson csak
+    // ─────────────────────────────────────────────
+
     #[Test]
-    public function it_does_not_confuse_models_from_other_brands()
+    public function test_get_by_brand_executes_single_query(): void
     {
-        $brandA = CarBrand::factory()->create();
-        $brandB = CarBrand::factory()->create();
+        $brand = CarBrand::factory()->create();
 
-        CarModel::factory()->create([
-            'car_brand_id' => $brandA->id,
-            'name' => 'Focus'
+        CarModel::factory()->count(3)->create([
+            'car_brand_id' => $brand->id
         ]);
 
-        // Ugyanaz a név, más márka alatt
-        CarModel::factory()->create([
-            'car_brand_id' => $brandB->id,
-            'name' => 'Focus'
-        ]);
+        \DB::enableQueryLog();
 
-        $this->assertTrue(
-            $this->repo->existsForBrand($brandA->id, 'Focus')
-        );
+        $this->repo->getByBrand($brand->id);
 
-        $this->assertTrue(
-            $this->repo->existsForBrand($brandB->id, 'Focus')
-        );
+        $queries = \DB::getQueryLog();
 
-        // Ha rossz brand-id-t adsz, false legyen
-        $this->assertFalse(
-            $this->repo->existsForBrand(999999, 'Focus')
-        );
+        $this->assertCount(1, $queries, 'getByBrand should execute exactly 1 query');
     }
 }

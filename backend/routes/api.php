@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\CarBrandController;
 use App\Http\Controllers\Api\User\CarModelController;
 use App\Http\Controllers\Api\User\FavoriteCarController;
 use App\Http\Controllers\Api\Admin\UserRequestController;
+use App\Http\Controllers\Api\User\CarImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,18 +28,17 @@ Route::middleware('auth:sanctum', 'active')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Favorite Car CRUD
-    Route::get('/favorite-cars', FavoriteCarController::class, 'index');
-    Route::post('/favorite-cars', FavoriteCarController::class, 'store');
-    Route::get('/favorite-cars/{id}', FavoriteCarController::class, 'show');
-    Route::put('/favorite-cars/{id}', FavoriteCarController::class, 'update');
-    Route::delete('/favorite-cars/{id}', FavoriteCarController::class, 'delete');
+    Route::get('/favorite-cars', [FavoriteCarController::class, 'index']);
+    Route::post('/favorite-cars', [FavoriteCarController::class, 'store']);
+    Route::get('/favorite-cars/{id}', [FavoriteCarController::class, 'show']);
+    Route::put('/favorite-cars/{id}', [FavoriteCarController::class, 'update']);
+    Route::delete('/favorite-cars/{id}', [FavoriteCarController::class, 'delete']);
     
     // Car Image routes
-    Route::get('/favorite-cars/{favoriteCar}/images', CarImageController::class, 'index');
-    Route::post('/favorite-cars/{favoriteCar}/images', CarImageController::class, 'store');
-
-    Route::get('/images/{carImage}', CarImageController::class, 'show');
-    Route::delete('/images/{carImage}', CarImageController::class, 'destroy');
+    Route::get('/favorite-cars/{favoriteCar}/images', [CarImageController::class, 'index']);
+    Route::post('/favorite-cars/{favoriteCar}/images', [CarImageController::class, 'store']);
+    Route::get('/images/{carImage}', [CarImageController::class, 'show']);
+    Route::delete('/images/{carImage}', [CarImageController::class, 'destroy']);
 
     // CAR BRAND CRUD
     Route::get('/car-brands', [CarBrandController::class, 'index']);

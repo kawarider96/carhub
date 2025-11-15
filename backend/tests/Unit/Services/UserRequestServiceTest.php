@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Models\UserRequest;
-use App\Repositories\UserRepository;
 use App\Repositories\UserRequestRepository;
+use App\Repositories\UserRepository;
 use App\Services\UserRequestService;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
@@ -20,155 +20,258 @@ class UserRequestServiceTest extends TestCase
         parent::tearDown();
     }
 
+    // ───────────────────────────────────────────────
+    // 1–2) all()
+    // ───────────────────────────────────────────────
+
     #[Test]
-    public function test_open_returns_open_requests(): void
+    public function test_all_calls_repository_all(): void
     {
-        $reqRepo = Mockery::mock(UserRequestRepository::class);
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
 
-        // itt lehet stdClass, mert csak collection-t számolunk, nem Service type-hint
-        $reqRepo->shouldReceive('open')
-            ->once()
-            ->andReturn(collect([(object)['id' => 1]]));
+        $requests->shouldReceive('all')->once()->andReturn(['req1', 'req2']);
 
-        $userRepo = Mockery::mock(UserRepository::class);
+        $service = new UserRequestService($requests, $users);
 
-        $service = new UserRequestService($reqRepo, $userRepo);
-        $res = $service->open();
+        $res = $service->all();
 
-        $this->assertCount(1, $res);
+        $this->assertEquals(['req1', 'req2'], $res);
     }
 
     #[Test]
-    public function test_user_request_fetches_by_user(): void
+    public function test_all_returns_passthrough(): void
     {
-        $request = new UserRequest();
-        $request->id = 10;
-        $request->user_id = 5;
-        $request->type = 'delete_account';
-        $request->status = 'open';
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
 
-        $reqRepo = Mockery::mock(UserRequestRepository::class);
-        $reqRepo->shouldReceive('byUser')
+        $expected = (object)['x' => 1];
+
+        $requests->shouldReceive('all')->once()->andReturn($expected);
+
+        $service = new UserRequestService($requests, $users);
+
+        $res = $service->all();
+
+        $this->assertSame($expected, $res);
+    }
+
+    // ───────────────────────────────────────────────
+    // 3–5) createRequest()
+    // ───────────────────────────────────────────────
+
+    #[Test]
+    public function test_create_request_returns_null_if_open_request_exists(): void
+    {
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
+
+        // open request exists
+        $requests->shouldReceive('openDeleteRequestsByUser')
             ->once()
             ->with(5)
-            ->andReturn($request);
+            ->andReturn((object)['id' => 1]);
 
-        $userRepo = Mockery::mock(UserRepository::class);
+        // create() MUST NOT be called
+        $requests->shouldReceive('create')->never();
 
-        $service = new UserRequestService($reqRepo, $userRepo);
+        $service = new UserRequestService($requests, $users);
 
-        $res = $service->userRequest(5);
+        $res = $service->createRequest(5);
 
-        $this->assertEquals(10, $res->id);
+        $this->assertNull($res);
     }
 
     #[Test]
-    public function test_create_request_returns_exists_when_already_present(): void
+    public function test_create_request_creates_new_request_if_no_open_exists(): void
     {
-        $existing = new UserRequest();
-        $existing->id = 1;
-        $existing->user_id = 7;
-        $existing->type = 'delete_account';
-        $existing->status = 'open';
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
 
-        $reqRepo = Mockery::mock(UserRequestRepository::class);
-        $reqRepo->shouldReceive('byUser')
+        // No open request
+        $requests->shouldReceive('openDeleteRequestsByUser')
             ->once()
             ->with(7)
-            ->andReturn($existing);
+            ->andReturn(null);
 
-        $userRepo = Mockery::mock(UserRepository::class);
+        $requests->shouldReceive('create')
+            ->once()
+            ->with(Mockery::on(function ($data) {
+                return $data['user_id'] === 7
+                    && $data['type'] === 'delete_account'
+                    && $data['status'] === 'open';
+            }))
+            ->andReturn(['id' => 88]);
 
-        $service = new UserRequestService($reqRepo, $userRepo);
+        $service = new UserRequestService($requests, $users);
 
         $res = $service->createRequest(7);
 
-        $this->assertFalse($res['status']);
-        $this->assertEquals('exists', $res['error']);
+        $this->assertEquals(['id' => 88], $res);
     }
 
     #[Test]
-    public function test_create_request_creates_when_not_present(): void
+    public function test_create_request_throws_if_repository_throws(): void
     {
-        $created = new UserRequest();
-        $created->id = 5;
-        $created->user_id = 8;
-        $created->type = 'delete_account';
-        $created->status = 'open';
+        $this->expectException(\Exception::class);
 
-        $reqRepo = Mockery::mock(UserRequestRepository::class);
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
 
-        $reqRepo->shouldReceive('byUser')
-            ->once()
-            ->with(8)
-            ->andReturn(null);
+        $requests->shouldReceive('openDeleteRequestsByUser')->andReturn(null);
+        $requests->shouldReceive('create')->andThrow(new \Exception('DB error'));
 
-        $reqRepo->shouldReceive('create')
-            ->once()
-            ->with(['user_id' => 8, 'status' => 'open'])
-            ->andReturn($created);
+        $service = new UserRequestService($requests, $users);
 
-        $userRepo = Mockery::mock(UserRepository::class);
-
-        $service = new UserRequestService($reqRepo, $userRepo);
-
-        $res = $service->createRequest(8);
-
-        $this->assertEquals(5, $res->id);
+        $service->createRequest(3);
     }
 
+    // ───────────────────────────────────────────────
+    // 6–8) approve()
+    // ───────────────────────────────────────────────
+
     #[Test]
-    public function test_approve_sets_status_and_deletes_user(): void
+    public function test_approve_calls_find(): void
     {
-        $request = new class {
-            public int $id = 5;
-            public int $user_id = 22;
-            public string $status = 'open';
-            public ?int $handled_by = null;
-            public int $saved = 0;
+        $request = Mockery::mock(UserRequest::class)->makePartial();
+        $request->user_id = 9;
 
-            public function save(): void { $this->saved++; }
-        };
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
 
-        $reqRepo = Mockery::mock(UserRequestRepository::class);
-        $reqRepo->shouldReceive('find')->once()->with(5)->andReturn($request);
+        $requests->shouldReceive('find')->once()->with(15)->andReturn($request);
 
-        $userRepo = Mockery::mock(UserRepository::class);
-        $userRepo->shouldReceive('delete')->once()->with(22)->andReturnTrue();
+        // For state changes
+        $request->shouldReceive('save')->once();
 
-        $service = new UserRequestService($reqRepo, $userRepo);
+        $users->shouldReceive('delete')->once()->with(9);
 
-        $res = $service->approve(5, 1);
+        $service = new UserRequestService($requests, $users);
 
+        $res = $service->approve(15, 100);
+
+        $this->assertSame($request, $res);
         $this->assertEquals('approved', $request->status);
-        $this->assertEquals(1, $request->handled_by);
-        $this->assertEquals(1, $request->saved);
+        $this->assertEquals(100, $request->handled_by);
+    }
+
+    #[Test]
+    public function test_approve_updates_status_and_saves_and_deletes_user(): void
+    {
+        $request = Mockery::mock(UserRequest::class)->makePartial();
+        $request->user_id = 22;
+
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
+
+        $requests->shouldReceive('find')->once()->with(2)->andReturn($request);
+
+        $request->shouldReceive('save')->once();
+        $users->shouldReceive('delete')->once()->with(22);
+
+        $service = new UserRequestService($requests, $users);
+
+        $res = $service->approve(2, 77);
+
+        $this->assertSame($request, $res);
+        $this->assertEquals('approved', $request->status);
+        $this->assertEquals(77, $request->handled_by);
+    }
+
+    #[Test]
+    public function test_approve_throws_if_save_fails(): void
+    {
+        $this->expectException(\Exception::class);
+
+        $request = Mockery::mock(UserRequest::class)->makePartial();
+        $request->user_id = 10;
+
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
+
+        $requests->shouldReceive('find')->andReturn($request);
+
+        $request->shouldReceive('save')->andThrow(new \Exception('save error'));
+
+        // should never reach deleting
+        $users->shouldReceive('delete')->never();
+
+        $service = new UserRequestService($requests, $users);
+
+        $service->approve(1, 1);
+    }
+
+    // ───────────────────────────────────────────────
+    // 9–10) reject()
+    // ───────────────────────────────────────────────
+
+    #[Test]
+    public function test_reject_calls_find_and_updates_status(): void
+    {
+        $request = Mockery::mock(UserRequest::class)->makePartial();
+
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
+
+        $requests->shouldReceive('find')->once()->with(5)->andReturn($request);
+
+        $request->shouldReceive('save')->once();
+
+        // MUST NOT delete user!
+        $users->shouldReceive('delete')->never();
+
+        $service = new UserRequestService($requests, $users);
+
+        $res = $service->reject(5, 999);
+
+        $this->assertSame($request, $res);
+        $this->assertEquals('rejected', $request->status);
+        $this->assertEquals(999, $request->handled_by);
+    }
+
+    // ───────────────────────────────────────────────
+    // 11–14) Advanced
+    // ───────────────────────────────────────────────
+
+    #[Test]
+    public function test_reject_return_passthrough(): void
+    {
+        $request = Mockery::mock(UserRequest::class)->makePartial();
+
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
+
+        $requests->shouldReceive('find')->andReturn($request);
+        $request->shouldReceive('save')->once();
+
+        $service = new UserRequestService($requests, $users);
+
+        $res = $service->reject(1, 20);
+
         $this->assertSame($request, $res);
     }
 
     #[Test]
-    public function test_reject_sets_status_rejected(): void
+    public function test_create_request_data_structure_correct(): void
     {
-        $request = new class {
-            public string $status = 'open';
-            public ?int $handled_by = null;
-            public int $saved = 0;
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users = Mockery::mock(UserRepository::class);
 
-            public function save(): void { $this->saved++; }
-        };
+        $requests->shouldReceive('openDeleteRequestsByUser')->andReturn(null);
 
-        $reqRepo = Mockery::mock(UserRequestRepository::class);
-        $reqRepo->shouldReceive('find')->once()->with(9)->andReturn($request);
+        $requests->shouldReceive('create')
+            ->once()
+            ->with(Mockery::on(function ($data) {
+                return $data['user_id'] === 100
+                    && $data['type'] === 'delete_account'
+                    && $data['status'] === 'open';
+            }))
+            ->andReturn(['id' => 555]);
 
-        $userRepo = Mockery::mock(UserRepository::class);
+        $service = new UserRequestService($requests, $users);
 
-        $service = new UserRequestService($reqRepo, $userRepo);
+        $res = $service->createRequest(100);
 
-        $res = $service->reject(9, 3);
-
-        $this->assertEquals('rejected', $request->status);
-        $this->assertEquals(3, $request->handled_by);
-        $this->assertEquals(1, $request->saved);
-        $this->assertSame($request, $res);
+        $this->assertEquals(['id' => 555], $res);
     }
 }
