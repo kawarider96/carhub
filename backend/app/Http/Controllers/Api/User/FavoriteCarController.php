@@ -10,10 +10,8 @@ use App\Models\FavoriteCar;
 use App\Services\FavoriteCarService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
 
-class FavoriteCarController extends Controller implements HasMiddleware
+class FavoriteCarController extends Controller
 {
     use ApiResponse;
 

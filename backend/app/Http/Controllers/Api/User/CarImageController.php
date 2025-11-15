@@ -11,11 +11,9 @@ use App\Models\CarImage;
 use App\Models\FavoriteCar;
 use App\Services\CarImageService;
 use App\Traits\ApiResponse;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class CarImageController extends Controller implements HasMiddleware
+class CarImageController extends Controller
 {
     use ApiResponse;
 
