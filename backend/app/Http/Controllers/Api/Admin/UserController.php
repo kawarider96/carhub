@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\User\StoreUserRequest;
 use App\Http\Requests\Admin\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
+use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Traits\ApiResponse;
 
 class UserController extends Controller implements HasMiddleware
 {
+    use ApiResponse;
+
     public function __construct(
         protected UserService $service
     ) {}
@@ -19,10 +23,8 @@ class UserController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:sanctum'),
-            new Middleware('active'),
             new Middleware('admin', only: [
-                'index', 'store', 'destroy', 'adminUpdate', 'lock', 'unlock'
+                'index', 'store', 'destroy', 'adminUpdate', 'lock', 'unlock', 'show'
             ]),
         ];
     }
@@ -32,18 +34,31 @@ class UserController extends Controller implements HasMiddleware
      *     path="/users",
      *     summary="Felhasználók listázása (admin)",
      *     tags={"Users"},
+     *
      *     @OA\Response(
      *         response=200,
-     *         description="Lista",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/User"))
+     *         description="Felhasználók listája",
+     *         @OA\JsonContent(ref="#/components/schemas/UserListResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Nincs jogosultság (admin required)",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
      *     )
      * )
      */
     public function index()
     {
-        return UserResource::collection(
-            $this->service->all()
-        );
+        $users = UserResource::collection($this->service->all());
+
+        return $this->success($users, 'Felhasználók listája', 200);
     }
 
     /**
@@ -51,44 +66,85 @@ class UserController extends Controller implements HasMiddleware
      *     path="/users",
      *     summary="Új felhasználó létrehozása (admin)",
      *     tags={"Users"},
+     *
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/UserStoreRequest")
      *     ),
+     *
      *     @OA\Response(
      *         response=201,
-     *         description="Létrehozva",
-     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *         description="Felhasználó létrehozva",
+     *         @OA\JsonContent(ref="#/components/schemas/UserSingleResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Nincs jogosultság (admin required)",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validációs hiba",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
      *     )
      * )
      */
-    public function store(StoreUserRequest $request)
+    public function adminStore(StoreUserRequest $request)
     {
-        $user = $this->service->create($request->validated());
+        $user = $this->service->register($request->validated());
 
-        return UserResource::make($user)
-            ->response()
-            ->setStatusCode(201);
+        return $this->success(UserResource::make($user), 'Felhasználó sikeresen létrehozva', 201);
     }
 
     /**
      * @OA\Get(
      *     path="/users/{id}",
-     *     summary="Felhasználó lekérése",
+     *     summary="Felhasználó lekérése (admin)",
      *     tags={"Users"},
-     *     @OA\Parameter(name="id", in="path", required=true),
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
      *     @OA\Response(
      *         response=200,
-     *         description="User",
-     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *         description="Felhasználó adatai",
+     *         @OA\JsonContent(ref="#/components/schemas/UserSingleResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Nincs jogosultság (admin required)",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="A felhasználó nem található",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
      *     )
      * )
      */
-    public function show(int $id)
+    public function show(User $user)
     {
-        $user = $this->service->find($id);
-
-        return UserResource::make($user);
+        return $this->success(UserResource::make($user), 'Felhasználó adatai', 200);
     }
 
     /**
@@ -96,22 +152,38 @@ class UserController extends Controller implements HasMiddleware
      *     path="/users",
      *     summary="Saját profil módosítása",
      *     tags={"Users"},
+     *
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/UserUpdateRequest")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
-     *         description="Sikeres frissítés",
-     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *         description="Profil frissítve",
+     *         @OA\JsonContent(ref="#/components/schemas/UserSingleResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validációs hiba",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
      *     )
      * )
      */
     public function update(UpdateUserRequest $request)
     {
+        $this->authorize('update', auth()->user());
+
         $user = $this->service->update(auth()->id(), $request->validated());
 
-        return UserResource::make($user);
+        return $this->success(UserResource::make($user), 'Profil sikeresen frissítve', 200);
     }
 
     /**
@@ -119,27 +191,56 @@ class UserController extends Controller implements HasMiddleware
      *     path="/users/{id}",
      *     summary="Felhasználó módosítása (admin)",
      *     tags={"Users"},
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         required=true,
+     *         description="A módosítandó felhasználó azonosítója",
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/UpdateUserRequest")
+     *         @OA\JsonContent(ref="#/components/schemas/UserUpdateRequest")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
-     *         description="Felhasználó frissítve",
-     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *         description="Felhasználó sikeresen frissítve",
+     *         @OA\JsonContent(ref="#/components/schemas/UserSingleResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Nincs jogosultság a művelethez",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="A felhasználó nem található",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validációs hiba",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
      *     )
      * )
      */
-    public function adminUpdate(UpdateUserRequest $request, int $id)
+    public function adminUpdate(UpdateUserRequest $request, User $user)
     {
-        $user = $this->service->update($id, $request->validated());
-        return new UserResource($user);
+        $updated = $this->service->update($user->id, $request->validated());
+
+        return $this->success(UserResource::make($updated), 'Felhasználó frissítve', 200);
     }
 
     /**
@@ -147,40 +248,133 @@ class UserController extends Controller implements HasMiddleware
      *     path="/users/{id}",
      *     summary="Felhasználó törlése (admin)",
      *     tags={"Users"},
-     *     @OA\Response(response=204)
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Sikeres törlés",
+     *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Nincs jogosultság (admin required)",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="A felhasználó nem található",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
      * )
      */
-    public function destroy(int $id)
+    public function destroy(User $user)
     {
-        $this->service->delete($id);
-        return response()->noContent();
+        $this->service->delete($user->id);
+
+        return $this->success(null, 'Felhasználó sikeresen törölve', 200);
     }
 
     /**
      * @OA\Post(
      *     path="/users/{id}/lock",
-     *     summary="Felhasználó zárolása",
+     *     summary="Felhasználó zárolása (admin)",
      *     tags={"Users"},
-     *     @OA\Response(response=200, description="Zárolva")
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Felhasználó zárolva",
+     *         @OA\JsonContent(ref="#/components/schemas/UserSingleResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Nincs jogosultság (admin required)",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="A felhasználó nem található",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
      * )
      */
-    public function lock(int $id)
+    public function lock(User $user)
     {
-        $user = $this->service->lock($id);
-        return UserResource::make($user);
+        $locked = $this->service->lock($user->id);
+
+        return $this->success(UserResource::make($locked), 'Felhasználó zárolva', 200);
     }
 
     /**
      * @OA\Post(
      *     path="/users/{id}/unlock",
-     *     summary="Felhasználó feloldása",
+     *     summary="Felhasználó feloldása (admin)",
      *     tags={"Users"},
-     *     @OA\Response(response=200, description="Feloldva")
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Felhasználó feloldva",
+     *         @OA\JsonContent(ref="#/components/schemas/UserSingleResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Nincs bejelentkezve",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Nincs jogosultság (admin required)",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="A felhasználó nem található",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
      * )
      */
-    public function unlock(int $id)
+    public function unlock(User $user)
     {
-        $user = $this->service->unlock($id);
-        return UserResource::make($user);
+        $unlocked = $this->service->unlock($user->id);
+
+        return $this->success(UserResource::make($unlocked), 'Felhasználó feloldva', 200);
     }
 }

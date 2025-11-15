@@ -12,11 +12,11 @@ class UserRequestRepository extends BaseRepository
     }
 
     /**
-     * Visszaadja az összes "open" státuszú törlési kérelmet.
+     * Visszaadja az összes "open" státuszú kérelmeket.
      *
      * @return \Illuminate\Support\Collection
      */
-    public function open()
+    public function openRequests()
     {
         return $this->model
             ->where('status', 'open')
@@ -29,10 +29,12 @@ class UserRequestRepository extends BaseRepository
      * @param int $userId
      * @return UserRequest|null
      */
-    public function byUser(int $userId): ?UserRequest
+    public function openDeleteRequestsByUser(int $userId): ?UserRequest
     {
         return $this->model
             ->where('user_id', $userId)
+            ->where('type', 'delete_account')
+            ->where('status', 'open')
             ->first();
     }
 }

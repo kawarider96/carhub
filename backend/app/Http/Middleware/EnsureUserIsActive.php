@@ -4,16 +4,19 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use App\Traits\ApiResponse;
 
 class EnsureUserIsActive
 {
-    public function handle(Request $request, Closure $next): Response
+    use ApiResponse;
+
+    public function handle(Request $request, Closure $next)
     {
         $user = $request->user();
 
-        if (!$user || !$user->is_active) {
-            return response()->json(['message' => 'Account Locked'], 423);
+        // Ha az account nem aktív → 423 Locked
+        if (!$user->is_active) {
+            return $this->error('A felhasználói fiók zárolva van', 423);
         }
 
         return $next($request);

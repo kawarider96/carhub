@@ -12,25 +12,21 @@ class UserRequestService
         protected UserRepository $users
     ) {}
 
-    public function open()
+    public function all()
     {
-        return $this->requests->open();
-    }
-
-    public function userRequest(int $userId)
-    {
-        return $this->requests->byUser($userId);
+        return $this->requests->all();
     }
 
     public function createRequest(int $userId)
     {
-        if ($this->requests->byUser($userId)) {
-            return ['status' => false, 'error' => 'exists'];
+        if ($this->requests->openDeleteRequestsByUser($userId)) {
+            return null;
         }
 
         return $this->requests->create([
             'user_id' => $userId,
-            'status' => 'open'
+            'type'    => 'delete_account',
+            'status'  => 'open',
         ]);
     }
 

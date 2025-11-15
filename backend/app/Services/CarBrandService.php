@@ -17,10 +17,21 @@ class CarBrandService
 
     public function create(array $data)
     {
-        if ($this->brands->existsByName($data['name'])) {
-            return ['status' => false, 'error' => 'exists'];
-        }
-
         return $this->brands->create($data);
+    }
+
+    public function update(int $id, array $data)
+    {
+        return $this->brands->update($id, $data);
+    }
+
+    public function delete(int $id)
+    {
+        return $this->brands->delete($id);
+    }
+
+    public function find(int $id)
+    {
+        return $this->brands->find($id);
     }
 }
