@@ -15,42 +15,42 @@
             {{-- KEZDŐLAP --}}
             <a href="{{ route('home') }}"
                class="group relative px-2 py-1 {{ request()->routeIs('home') ? 'text-accent font-semibold' : 'text-gray-300 hover:text-accent' }}">
-
-                {{-- animated bar --}}
                 <span class="absolute left-0 top-0 h-full w-1 bg-accent 
                     {{ request()->routeIs('home') ? '' : 'scale-y-0 group-hover:scale-y-100 transition-transform origin-top'}}">
                 </span>
-
                 Kezdőlap
             </a>
 
             @guest
                 {{-- BEJELENTKEZÉS --}}
-                <a href="{{ route('user.login') }}"
-                   class="group relative px-2 py-1 {{ request()->routeIs('user.login') ? 'text-accent font-semibold' : 'text-gray-300 hover:text-accent' }}">
-
+                <a href="{{ route('auth.login') }}"
+                   class="group relative px-2 py-1 {{ request()->routeIs('auth.login') ? 'text-accent font-semibold' : 'text-gray-300 hover:text-accent' }}">
                     <span class="absolute left-0 top-0 h-full w-1 bg-accent
-                        {{ request()->routeIs('user.login') ? '' : 'scale-y-0 group-hover:scale-y-100 transition-transform origin-top'}}">
-                    </span>
-
+                        {{ request()->routeIs('auth.login') ? '' : 'scale-y-0 group-hover:scale-y-100 transition-transform origin-top'}}"></span>
                     Bejelentkezés
                 </a>
 
                 {{-- REGISZTRÁCIÓ --}}
-                <a href="{{ route('user.register') }}"
-                   class="group relative px-2 py-1 {{ request()->routeIs('user.register') ? 'text-accent font-semibold' : 'text-gray-300 hover:text-accent' }}">
-
+                <a href="{{ route('auth.register') }}"
+                   class="group relative px-2 py-1 {{ request()->routeIs('auth.register') ? 'text-accent font-semibold' : 'text-gray-300 hover:text-accent' }}">
                     <span class="absolute left-0 top-0 h-full w-1 bg-accent
-                        {{ request()->routeIs('user.register') ? '' : 'scale-y-0 group-hover:scale-y-100 transition-transform origin-top'}}">
-                    </span>
-
+                        {{ request()->routeIs('auth.register') ? '' : 'scale-y-0 group-hover:scale-y-100 transition-transform origin-top'}}"></span>
                     Regisztráció
                 </a>
             @endguest
 
             @auth
+
+                {{-- DASHBOARD --}}
+                <a href="{{ route('dashboard.index') }}"
+                   class="group relative px-2 py-1 {{ request()->routeIs('dashboard') ? 'text-accent font-semibold' : 'text-gray-300 hover:text-accent' }}">
+                    <span class="absolute left-0 top-0 h-full w-1 bg-accent
+                        {{ request()->routeIs('dashboard') ? '' : 'scale-y-0 group-hover:scale-y-100 transition-transform origin-top'}}"></span>
+                    Dashboard
+                </a>
+
                 {{-- KIJELENTKEZÉS --}}
-                <form method="POST" action="{{ route('logout') }}" class="relative group">
+                <form method="POST" action="{{ route('auth.logout') }}" class="relative group">
                     @csrf
                     <button class="px-2 py-1 text-gray-300 hover:text-red-500">
                         <span class="absolute left-0 top-0 h-full w-1 bg-red-500 scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></span>

@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\User\DashboardController;
+use App\Http\Controllers\Web\User\FavoriteCarController;
+use App\Http\Controllers\Web\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -10,53 +12,76 @@ use App\Http\Controllers\Web\User\DashboardController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
+/*
+|--------------------------------------------------------------------------
+| USER AUTH
+|--------------------------------------------------------------------------
+*/
 
+Route::prefix('auth')->middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('auth.login');
+    Route::post('/login', [AuthController::class, 'login'])->name('auth.login.post');
 
-// Login form
-Route::get('/login', [AuthController::class, 'showLoginForm'])
-    ->name('user.login');
+    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('auth.register');
+    Route::post('/register', [AuthController::class, 'register'])->name('auth.register.post');
+});
 
-// Login submit
-Route::post('/login', [AuthController::class, 'login'])
-    ->name('login.post');
-
-// Register form
-Route::get('/register', [AuthController::class, 'showRegisterForm'])
-    ->name('user.register');
-
-// Register submit
-Route::post('/register', [AuthController::class, 'register'])
-    ->name('register.post');
-
-// Logout
+// Logout (csak belépett user)
 Route::post('/logout', [AuthController::class, 'logout'])
-    ->name('logout')->middleware('auth');
+    ->middleware('auth')
+    ->name('auth.logout');
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN AUTH
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/login', [AuthController::class, 'showAdminLoginForm'])->name('admin.login');
+Route::post('/login', [AuthController::class, 'adminLogin'])->name('admin.login.post');
 
 
 /*
 |--------------------------------------------------------------------------
-| Admin Authentication (SEPARATE)
+| USER DASHBOARD
 |--------------------------------------------------------------------------
 */
 
-// Admin login form
-Route::get('/admin/login', [AuthController::class, 'showAdminLoginForm'])
-    ->name('admin.login');
-
-// Admin login submit
-Route::post('/admin/login', [AuthController::class, 'adminLogin'])
-    ->name('admin.login.post');
+Route::middleware(['auth', 'active'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+});
 
 /*
 |--------------------------------------------------------------------------
-| User Dashboard
+| FAVORITE CARS (CRUD)
 |--------------------------------------------------------------------------
 */
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->name('dashboard')
-    ->middleware('auth');   // csak bejelentkezett user
+Route::middleware(['auth', 'active'])
+    ->prefix('favorites')
+    ->name('favorites.')
+    ->group(function () {
+
+        // Listázás (index)
+        Route::get('/', [FavoriteCarController::class, 'index'])->name('index');
+
+        // Új autó form
+        Route::get('/create', [FavoriteCarController::class, 'create'])->name('create');
+
+        // Mentés
+        Route::post('/', [FavoriteCarController::class, 'store'])->name('store');
+
+        // Megtekintés
+        Route::get('/{favoriteCar}', [FavoriteCarController::class, 'show'])->name('show');
+
+        // Szerkesztő form
+        Route::get('/{favoriteCar}/edit', [FavoriteCarController::class, 'edit'])->name('edit');
+
+        // Frissítés
+        Route::put('/{favoriteCar}', [FavoriteCarController::class, 'update'])->name('update');
+
+        // Törlés
+        Route::delete('/{favoriteCar}', [FavoriteCarController::class, 'destroy'])->name('destroy');
+    });
