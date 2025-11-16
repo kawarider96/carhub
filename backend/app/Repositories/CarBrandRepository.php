@@ -4,6 +4,9 @@ namespace App\Repositories;
 
 use App\Models\CarBrand;
 
+/**
+ * @extends BaseRepository<CarBrand>
+ */
 class CarBrandRepository extends BaseRepository
 {
     public function __construct(CarBrand $model)
@@ -20,6 +23,8 @@ class CarBrandRepository extends BaseRepository
     }
 
     /**
+     * Megkeres egy márkát a neve alapján.
+     *
      * @return CarBrand|null
      */
     public function findByName(string $name): ?CarBrand

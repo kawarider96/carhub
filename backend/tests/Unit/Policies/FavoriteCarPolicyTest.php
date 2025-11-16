@@ -4,83 +4,201 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Policies;
 
-use App\Models\FavoriteCar;
 use App\Models\User;
+use App\Models\FavoriteCar;
 use App\Policies\FavoriteCarPolicy;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class FavoriteCarPolicyTest extends TestCase
 {
-    private function makeUser(int $id, string $role = 'user', bool $active = true): User
+    protected FavoriteCarPolicy $policy;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->policy = new FavoriteCarPolicy();
+    }
+
+    private function makeUser(int $id, string $role): User
     {
         $u = new User();
         $u->id = $id;
         $u->role = $role;
-        $u->is_active = $active;
         return $u;
     }
 
-    private function makeFav(int $id, int $ownerId): FavoriteCar
+    private function makeCar(int $userId): FavoriteCar
     {
-        $f = new FavoriteCar();
-        $f->id = $id;
-        $f->user_id = $ownerId;
-        return $f;
+        $c = new FavoriteCar();
+        $c->user_id = $userId;
+        return $c;
     }
 
+    //──────────────────────────────────────
+    // viewAny
+    //──────────────────────────────────────
     #[Test]
-    public function test_view_any_only_admin(): void
+    public function test_view_any_allows_admin()
     {
-        $policy = new FavoriteCarPolicy();
         $admin = $this->makeUser(1, 'admin');
-        $user  = $this->makeUser(2, 'user');
 
-        $this->assertTrue($policy->viewAny($admin));
-        $this->assertFalse($policy->viewAny($user));
+        $this->assertTrue(
+            $this->policy->viewAny($admin)
+        );
     }
 
     #[Test]
-    public function test_view_admin_or_owner(): void
+    public function test_view_any_denies_non_admin()
     {
-        $policy = new FavoriteCarPolicy();
+        $user = $this->makeUser(2, 'user');
+
+        $this->assertFalse(
+            $this->policy->viewAny($user)
+        );
+    }
+
+    //──────────────────────────────────────
+    // view
+    //──────────────────────────────────────
+    #[Test]
+    public function test_view_allows_admin_for_any_car()
+    {
         $admin = $this->makeUser(1, 'admin');
-        $alice = $this->makeUser(2, 'user');
-        $car   = $this->makeFav(10, $alice->id);
-        $bob   = $this->makeUser(3, 'user');
+        $car = $this->makeCar(999);
 
-        $this->assertTrue($policy->view($admin, $car));
-        $this->assertTrue($policy->view($alice, $car));
-        $this->assertFalse($policy->view($bob, $car));
+        $this->assertTrue(
+            $this->policy->view($admin, $car)
+        );
     }
 
     #[Test]
-    public function test_create_only_active_user(): void
+    public function test_view_allows_owner()
     {
-        $policy = new FavoriteCarPolicy();
-        $activeUser   = $this->makeUser(2, 'user', true);
-        $inactiveUser = $this->makeUser(3, 'user', false);
+        $user = $this->makeUser(10, 'user');
+        $car = $this->makeCar(10);
 
-        $this->assertTrue($policy->create($activeUser));
-        $this->assertFalse($policy->create($inactiveUser));
+        $this->assertTrue(
+            $this->policy->view($user, $car)
+        );
     }
 
     #[Test]
-    public function test_update_and_delete_only_owner_not_admin(): void
+    public function test_view_denies_non_owner_non_admin()
     {
-        $policy = new FavoriteCarPolicy();
+        $user = $this->makeUser(10, 'user');
+        $car = $this->makeCar(20);
+
+        $this->assertFalse(
+            $this->policy->view($user, $car)
+        );
+    }
+
+    //──────────────────────────────────────
+    // update
+    //──────────────────────────────────────
+    #[Test]
+    public function test_update_allows_owner()
+    {
+        $user = $this->makeUser(10, 'user');
+        $car = $this->makeCar(10);
+
+        $this->assertTrue(
+            $this->policy->update($user, $car)
+        );
+    }
+
+    #[Test]
+    public function test_update_denies_admin_if_not_owner()
+    {
         $admin = $this->makeUser(1, 'admin');
-        $owner = $this->makeUser(2, 'user');
-        $other = $this->makeUser(3, 'user');
-        $car   = $this->makeFav(10, $owner->id);
+        $car = $this->makeCar(10);
 
-        $this->assertTrue($policy->update($owner, $car));
-        $this->assertFalse($policy->update($admin, $car));
-        $this->assertFalse($policy->update($other, $car));
+        $this->assertFalse(
+            $this->policy->update($admin, $car)
+        );
+    }
 
-        $this->assertTrue($policy->delete($owner, $car));
-        $this->assertFalse($policy->delete($admin, $car));
-        $this->assertFalse($policy->delete($other, $car));
+    #[Test]
+    public function test_update_denies_non_owner()
+    {
+        $user = $this->makeUser(5, 'user');
+        $car = $this->makeCar(99);
+
+        $this->assertFalse(
+            $this->policy->update($user, $car)
+        );
+    }
+
+    //──────────────────────────────────────
+    // create
+    //──────────────────────────────────────
+    #[Test]
+    public function test_create_allows_owner()
+    {
+        $user = $this->makeUser(10, 'user');
+        $car = $this->makeCar(10);
+
+        $this->assertTrue(
+            $this->policy->create($user, $car)
+        );
+    }
+
+    #[Test]
+    public function test_create_denies_admin_if_not_owner()
+    {
+        $admin = $this->makeUser(1, 'admin');
+        $car = $this->makeCar(10);
+
+        $this->assertFalse(
+            $this->policy->create($admin, $car)
+        );
+    }
+
+    #[Test]
+    public function test_create_denies_non_owner()
+    {
+        $user = $this->makeUser(3, 'user');
+        $car = $this->makeCar(7);
+
+        $this->assertFalse(
+            $this->policy->create($user, $car)
+        );
+    }
+
+    //──────────────────────────────────────
+    // delete
+    //──────────────────────────────────────
+    #[Test]
+    public function test_delete_allows_owner()
+    {
+        $user = $this->makeUser(10, 'user');
+        $car = $this->makeCar(10);
+
+        $this->assertTrue(
+            $this->policy->delete($user, $car)
+        );
+    }
+
+    #[Test]
+    public function test_delete_denies_admin_if_not_owner()
+    {
+        $admin = $this->makeUser(1, 'admin');
+        $car = $this->makeCar(20);
+
+        $this->assertFalse(
+            $this->policy->delete($admin, $car)
+        );
+    }
+
+    #[Test]
+    public function test_delete_denies_non_owner()
+    {
+        $user = $this->makeUser(10, 'user');
+        $car = $this->makeCar(30);
+
+        $this->assertFalse(
+            $this->policy->delete($user, $car)
+        );
     }
 }
-

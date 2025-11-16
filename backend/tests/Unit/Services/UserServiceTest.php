@@ -439,7 +439,6 @@ class UserServiceTest extends TestCase
             ->andReturn($tokenObj);
 
         $repo = Mockery::mock(UserRepository::class);
-
         $repo->shouldReceive('createUser')
             ->once()
             ->andReturn($user);
@@ -448,19 +447,19 @@ class UserServiceTest extends TestCase
 
         $res = $service->register([
             'full_name' => 'John Doe',
-            'username' => 'jdoe',
-            'password' => 'plainpw',
+            'username'  => 'jdoe',
+            'password'  => 'plainpw',
         ]);
 
-        $this->assertEquals('reg-token', $res['token']);
+        // új elvárás: ténylegesen a user objektumot kapjuk vissza
+        $this->assertInstanceOf(User::class, $res);
+        $this->assertEquals('jdoe', $res->username);
     }
 
     // 17) createUser helyes adattal
     #[Test]
     public function test_register_calls_create_user_with_correct_data(): void
     {
-        $repo = Mockery::mock(UserRepository::class);
-
         Hash::shouldReceive('make')->andReturn('hashedpw');
 
         $user = Mockery::mock(User::class)->makePartial();
@@ -468,6 +467,17 @@ class UserServiceTest extends TestCase
         $user->full_name = 'Jane Doe';
         $user->username = 'jane';
         $user->role = 'user';
+
+        $tokenObj = new class {
+            public string $plainTextToken = 'jane-token';
+        };
+
+        $user->shouldReceive('createToken')
+            ->once()
+            ->with('auth_token')
+            ->andReturn($tokenObj);
+
+        $repo = Mockery::mock(UserRepository::class);
 
         $repo->shouldReceive('createUser')
             ->once()
@@ -481,15 +491,6 @@ class UserServiceTest extends TestCase
             }))
             ->andReturn($user);
 
-        $tokenObject = new class {
-            public string $plainTextToken = 'jane-token';
-        };
-
-        $user->shouldReceive('createToken')
-            ->once()
-            ->with('auth_token')
-            ->andReturn($tokenObject);
-
         $service = new UserService($repo);
 
         $res = $service->register([
@@ -498,18 +499,14 @@ class UserServiceTest extends TestCase
             'password'  => 'pw',
         ]);
 
-        $this->assertEquals('Jane Doe', $res['full_name']);
-        $this->assertEquals('jane', $res['username']);
-        $this->assertEquals('user', $res['role']);
-        $this->assertEquals('jane-token', $res['token']);
+        $this->assertInstanceOf(User::class, $res);
+        $this->assertEquals('Jane Doe', $res->full_name);
     }
 
     // 18) teljes response struktúra
     #[Test]
     public function test_register_returns_expected_structure(): void
     {
-        $repo = Mockery::mock(UserRepository::class);
-
         Hash::shouldReceive('make')->andReturn('hashed');
 
         $user = Mockery::mock(User::class)->makePartial();
@@ -518,16 +515,17 @@ class UserServiceTest extends TestCase
         $user->username = 'max';
         $user->role = 'user';
 
-        $repo->shouldReceive('createUser')->andReturn($user);
-
-        $tokenObject = new class {
+        $tokenObj = new class {
             public string $plainTextToken = 'max-token';
         };
 
         $user->shouldReceive('createToken')
             ->once()
             ->with('auth_token')
-            ->andReturn($tokenObject);
+            ->andReturn($tokenObj);
+
+        $repo = Mockery::mock(UserRepository::class);
+        $repo->shouldReceive('createUser')->andReturn($user);
 
         $service = new UserService($repo);
 
@@ -537,11 +535,11 @@ class UserServiceTest extends TestCase
             'password'  => 'pw',
         ]);
 
-        $this->assertEquals(3, $res['id']);
-        $this->assertEquals('Max Payne', $res['full_name']);
-        $this->assertEquals('max', $res['username']);
-        $this->assertEquals('user', $res['role']);
-        $this->assertEquals('max-token', $res['token']);
+        $this->assertInstanceOf(User::class, $res); 
+        $this->assertEquals(3, $res->id);
+        $this->assertEquals('Max Payne', $res->full_name);
+        $this->assertEquals('max', $res->username);
+        $this->assertEquals('user', $res->role);
     }
 
     // 19) createUser exception

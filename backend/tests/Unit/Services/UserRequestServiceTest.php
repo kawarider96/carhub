@@ -7,6 +7,7 @@ namespace Tests\Unit\Services;
 use App\Models\UserRequest;
 use App\Repositories\UserRequestRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\CarBrandRepository;
 use App\Services\UserRequestService;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
@@ -20,258 +21,175 @@ class UserRequestServiceTest extends TestCase
         parent::tearDown();
     }
 
-    // ───────────────────────────────────────────────
-    // 1–2) all()
-    // ───────────────────────────────────────────────
-
-    #[Test]
-    public function test_all_calls_repository_all(): void
-    {
-        $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
-
-        $requests->shouldReceive('all')->once()->andReturn(['req1', 'req2']);
-
-        $service = new UserRequestService($requests, $users);
-
-        $res = $service->all();
-
-        $this->assertEquals(['req1', 'req2'], $res);
-    }
-
-    #[Test]
-    public function test_all_returns_passthrough(): void
-    {
-        $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
-
-        $expected = (object)['x' => 1];
-
-        $requests->shouldReceive('all')->once()->andReturn($expected);
-
-        $service = new UserRequestService($requests, $users);
-
-        $res = $service->all();
-
-        $this->assertSame($expected, $res);
+    private function makeService(
+        $requestsMock,
+        $usersMock,
+        $brandsMock
+    ): UserRequestService {
+        return new UserRequestService($requestsMock, $usersMock, $brandsMock);
     }
 
     // ───────────────────────────────────────────────
-    // 3–5) createRequest()
+    // ALL()
     // ───────────────────────────────────────────────
 
     #[Test]
-    public function test_create_request_returns_null_if_open_request_exists(): void
+    public function test_all_delegates_to_repository(): void
     {
         $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
+        $users    = Mockery::mock(UserRepository::class);
+        $brands   = Mockery::mock(CarBrandRepository::class);
 
-        // open request exists
-        $requests->shouldReceive('openDeleteRequestsByUser')
+        $requests->shouldReceive('all')->once()->andReturn(['a','b']);
+
+        $service = $this->makeService($requests, $users, $brands);
+
+        $res = $service->all();
+
+        $this->assertEquals(['a','b'], $res);
+    }
+
+    // ───────────────────────────────────────────────
+    // CREATE REQUEST
+    // ───────────────────────────────────────────────
+
+    #[Test]
+    public function test_create_request_returns_false_if_open_exists(): void
+    {
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users    = Mockery::mock(UserRepository::class);
+        $brands   = Mockery::mock(CarBrandRepository::class);
+
+        $requests->shouldReceive('findOpenByUserAndType')
             ->once()
-            ->with(5)
-            ->andReturn((object)['id' => 1]);
+            ->with(10, 'delete_account')
+            ->andReturn((object)['id'=>1]);
 
-        // create() MUST NOT be called
         $requests->shouldReceive('create')->never();
 
-        $service = new UserRequestService($requests, $users);
+        $service = $this->makeService($requests, $users, $brands);
 
-        $res = $service->createRequest(5);
-
-        $this->assertNull($res);
+        $this->assertFalse(
+            $service->createRequest(10, 'delete_account', [])
+        );
     }
 
     #[Test]
-    public function test_create_request_creates_new_request_if_no_open_exists(): void
+    public function test_create_request_creates_when_none_exists(): void
     {
         $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
+        $users    = Mockery::mock(UserRepository::class);
+        $brands   = Mockery::mock(CarBrandRepository::class);
 
-        // No open request
-        $requests->shouldReceive('openDeleteRequestsByUser')
+        $requests->shouldReceive('findOpenByUserAndType')
             ->once()
-            ->with(7)
+            ->with(5, 'delete_account')
             ->andReturn(null);
 
         $requests->shouldReceive('create')
             ->once()
             ->with(Mockery::on(function ($data) {
-                return $data['user_id'] === 7
-                    && $data['type'] === 'delete_account'
-                    && $data['status'] === 'open';
+                return $data['user_id'] === 5 &&
+                       $data['type']     === 'delete_account' &&
+                       $data['status']   === 'open';
             }))
-            ->andReturn(['id' => 88]);
+            ->andReturn(['id'=>999]);
 
-        $service = new UserRequestService($requests, $users);
+        $service = $this->makeService($requests, $users, $brands);
 
-        $res = $service->createRequest(7);
+        $res = $service->createRequest(5, 'delete_account', []);
 
-        $this->assertEquals(['id' => 88], $res);
+        $this->assertEquals(['id'=>999], $res);
     }
 
-    #[Test]
-    public function test_create_request_throws_if_repository_throws(): void
-    {
-        $this->expectException(\Exception::class);
+    // ───────────────────────────────────────────────
+    // APPROVE()
+    // ───────────────────────────────────────────────
 
+    #[Test]
+    public function test_approve_handles_delete_account(): void
+    {
         $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
+        $users    = Mockery::mock(UserRepository::class);
+        $brands   = Mockery::mock(CarBrandRepository::class);
 
-        $requests->shouldReceive('openDeleteRequestsByUser')->andReturn(null);
-        $requests->shouldReceive('create')->andThrow(new \Exception('DB error'));
-
-        $service = new UserRequestService($requests, $users);
-
-        $service->createRequest(3);
-    }
-
-    // ───────────────────────────────────────────────
-    // 6–8) approve()
-    // ───────────────────────────────────────────────
-
-    #[Test]
-    public function test_approve_calls_find(): void
-    {
         $request = Mockery::mock(UserRequest::class)->makePartial();
-        $request->user_id = 9;
+        $request->type = 'delete_account';
+        $request->user_id = 7;
 
-        $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
+        $requests->shouldReceive('find')
+            ->once()->with(2)->andReturn($request);
 
-        $requests->shouldReceive('find')->once()->with(15)->andReturn($request);
+        $users->shouldReceive('delete')->once()->with(7);
 
-        // For state changes
         $request->shouldReceive('save')->once();
 
-        $users->shouldReceive('delete')->once()->with(9);
+        $service = $this->makeService($requests, $users, $brands);
 
-        $service = new UserRequestService($requests, $users);
+        $res = $service->approve(2, 100);
 
-        $res = $service->approve(15, 100);
-
-        $this->assertSame($request, $res);
         $this->assertEquals('approved', $request->status);
         $this->assertEquals(100, $request->handled_by);
+        $this->assertSame($request, $res);
     }
 
     #[Test]
-    public function test_approve_updates_status_and_saves_and_deletes_user(): void
+    public function test_approve_handles_missing_brand(): void
     {
-        $request = Mockery::mock(UserRequest::class)->makePartial();
-        $request->user_id = 22;
-
         $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
+        $users    = Mockery::mock(UserRepository::class);
+        $brands   = Mockery::mock(CarBrandRepository::class);
 
-        $requests->shouldReceive('find')->once()->with(2)->andReturn($request);
+        $request = Mockery::mock(UserRequest::class)->makePartial();
+        $request->type = 'missing_brand';
+        $request->user_id = 15;
+        $request->payload = ['brand' => 'Lamborghini'];
+
+        $requests->shouldReceive('find')
+            ->once()->with(9)->andReturn($request);
+
+        // brand NEM létezik
+        $brands->shouldReceive('existsByName')
+            ->once()->with('Lamborghini')->andReturn(false);
+
+        $brands->shouldReceive('create')
+            ->once()->with(['name'=>'Lamborghini']);
 
         $request->shouldReceive('save')->once();
-        $users->shouldReceive('delete')->once()->with(22);
 
-        $service = new UserRequestService($requests, $users);
+        $service = $this->makeService($requests, $users, $brands);
 
-        $res = $service->approve(2, 77);
+        $res = $service->approve(9, 200);
 
-        $this->assertSame($request, $res);
         $this->assertEquals('approved', $request->status);
-        $this->assertEquals(77, $request->handled_by);
-    }
-
-    #[Test]
-    public function test_approve_throws_if_save_fails(): void
-    {
-        $this->expectException(\Exception::class);
-
-        $request = Mockery::mock(UserRequest::class)->makePartial();
-        $request->user_id = 10;
-
-        $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
-
-        $requests->shouldReceive('find')->andReturn($request);
-
-        $request->shouldReceive('save')->andThrow(new \Exception('save error'));
-
-        // should never reach deleting
-        $users->shouldReceive('delete')->never();
-
-        $service = new UserRequestService($requests, $users);
-
-        $service->approve(1, 1);
+        $this->assertEquals(200, $request->handled_by);
+        $this->assertSame($request, $res);
     }
 
     // ───────────────────────────────────────────────
-    // 9–10) reject()
+    // REJECT()
     // ───────────────────────────────────────────────
 
     #[Test]
-    public function test_reject_calls_find_and_updates_status(): void
+    public function test_reject_updates_status(): void
     {
+        $requests = Mockery::mock(UserRequestRepository::class);
+        $users    = Mockery::mock(UserRepository::class);
+        $brands   = Mockery::mock(CarBrandRepository::class);
+
         $request = Mockery::mock(UserRequest::class)->makePartial();
 
-        $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
-
-        $requests->shouldReceive('find')->once()->with(5)->andReturn($request);
+        $requests->shouldReceive('find')
+            ->once()->with(20)->andReturn($request);
 
         $request->shouldReceive('save')->once();
 
-        // MUST NOT delete user!
-        $users->shouldReceive('delete')->never();
+        $service = $this->makeService($requests, $users, $brands);
 
-        $service = new UserRequestService($requests, $users);
+        $res = $service->reject(20, 300);
 
-        $res = $service->reject(5, 999);
-
-        $this->assertSame($request, $res);
         $this->assertEquals('rejected', $request->status);
-        $this->assertEquals(999, $request->handled_by);
-    }
-
-    // ───────────────────────────────────────────────
-    // 11–14) Advanced
-    // ───────────────────────────────────────────────
-
-    #[Test]
-    public function test_reject_return_passthrough(): void
-    {
-        $request = Mockery::mock(UserRequest::class)->makePartial();
-
-        $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
-
-        $requests->shouldReceive('find')->andReturn($request);
-        $request->shouldReceive('save')->once();
-
-        $service = new UserRequestService($requests, $users);
-
-        $res = $service->reject(1, 20);
-
+        $this->assertEquals(300, $request->handled_by);
         $this->assertSame($request, $res);
-    }
-
-    #[Test]
-    public function test_create_request_data_structure_correct(): void
-    {
-        $requests = Mockery::mock(UserRequestRepository::class);
-        $users = Mockery::mock(UserRepository::class);
-
-        $requests->shouldReceive('openDeleteRequestsByUser')->andReturn(null);
-
-        $requests->shouldReceive('create')
-            ->once()
-            ->with(Mockery::on(function ($data) {
-                return $data['user_id'] === 100
-                    && $data['type'] === 'delete_account'
-                    && $data['status'] === 'open';
-            }))
-            ->andReturn(['id' => 555]);
-
-        $service = new UserRequestService($requests, $users);
-
-        $res = $service->createRequest(100);
-
-        $this->assertEquals(['id' => 555], $res);
     }
 }

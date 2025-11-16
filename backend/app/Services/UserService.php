@@ -12,36 +12,81 @@ class UserService
         protected UserRepository $users
     ) {}
 
+    /**
+     * Összes felhasználó listázása.
+     *
+     * @return Collection<int, User>
+     */
     public function all()
     {
         return $this->users->all();
     }
 
+    /**
+     * Egy felhasználó lekérése ID alapján.
+     *
+     * @return User
+     */
     public function find(int $id)
     {
         return $this->users->find($id);
     }
 
+    /**
+     * Felhasználó frissítése.
+     *
+     * @param array<string, mixed> $data
+     * @return User
+     */
     public function update(int $id, array $data)
     {
         return $this->users->update($id, $data);
     }
 
+    /**
+     * Felhasználó törlése.
+     *
+     * @return bool|null
+     */
     public function delete(int $id)
     {
         return $this->users->delete($id);
     }
 
+    /**
+     * Felhasználó zárolása.
+     *
+     * @return User
+     */
     public function lock(int $id)
     {
         return $this->users->lockUser($id);
     }
 
+    /**
+     * Felhasználó zárolásának feloldása.
+     *
+     * @return User
+     */
     public function unlock(int $id)
     {
         return $this->users->unlockUser($id);
     }
 
+    /**
+     * Bejelentkezés kezelése.
+     *
+     * @param array{username:string, password:string} $credentials
+     *
+     * @return array{
+     *     token: string,
+     *     user: array{
+     *         id:int,
+     *         full_name:string,
+     *         role:string
+     *     }
+     * } | 'wrong_credentials' | 'locked'
+     */
     public function login(array $credentials)
     {
         $user = $this->users->findByUsername($credentials['username']);
@@ -76,6 +121,12 @@ class UserService
         ];
     }
 
+    /**
+     * Új felhasználó regisztrációja.
+     *
+     * @param array<string, mixed> $data
+     * @return User
+     */
     public function register(array $data)
     {
         $user = $this->users->createUser([
@@ -89,12 +140,6 @@ class UserService
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return [
-            'id'        => $user->id,
-            'full_name' => $user->full_name,
-            'username'  => $user->username,
-            'role'      => $user->role,
-            'token'     => $token,
-        ];
+        return $user;
     }
 }

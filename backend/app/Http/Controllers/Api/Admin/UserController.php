@@ -11,10 +11,13 @@ use App\Services\UserService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use App\Traits\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller implements HasMiddleware
 {
     use ApiResponse;
+    use AuthorizesRequests;
 
     public function __construct(
         protected UserService $service
@@ -24,7 +27,7 @@ class UserController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('admin', only: [
-                'index', 'store', 'destroy', 'adminUpdate', 'lock', 'unlock', 'show'
+                'index', 'adminStore', 'destroy', 'adminUpdate', 'lock', 'unlock', 'show'
             ]),
         ];
     }
@@ -54,7 +57,7 @@ class UserController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function index()
+    public function index(): JsonResponse
     {
         $users = UserResource::collection($this->service->all());
 
@@ -97,7 +100,7 @@ class UserController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function adminStore(StoreUserRequest $request)
+    public function adminStore(StoreUserRequest $request): JsonResponse
     {
         $user = $this->service->register($request->validated());
 
@@ -142,7 +145,7 @@ class UserController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function show(User $user)
+    public function show(User $user): JsonResponse
     {
         return $this->success(UserResource::make($user), 'Felhasználó adatai', 200);
     }
@@ -177,7 +180,7 @@ class UserController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function update(UpdateUserRequest $request)
+    public function update(UpdateUserRequest $request): JsonResponse
     {
         $this->authorize('update', auth()->user());
 
@@ -236,7 +239,7 @@ class UserController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function adminUpdate(UpdateUserRequest $request, User $user)
+    public function adminUpdate(UpdateUserRequest $request, User $user): JsonResponse
     {
         $updated = $this->service->update($user->id, $request->validated());
 
@@ -281,7 +284,7 @@ class UserController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function destroy(User $user)
+    public function destroy(User $user): JsonResponse
     {
         $this->service->delete($user->id);
 
@@ -326,7 +329,7 @@ class UserController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function lock(User $user)
+    public function lock(User $user): JsonResponse
     {
         $locked = $this->service->lock($user->id);
 
@@ -371,7 +374,7 @@ class UserController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function unlock(User $user)
+    public function unlock(User $user): JsonResponse
     {
         $unlocked = $this->service->unlock($user->id);
 

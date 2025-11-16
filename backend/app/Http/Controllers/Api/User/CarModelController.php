@@ -11,6 +11,7 @@ use App\Services\CarModelService;
 use App\Traits\ApiResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Http\JsonResponse;
 
 class CarModelController extends Controller implements HasMiddleware
 {
@@ -52,7 +53,7 @@ class CarModelController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function index()
+    public function index(): JsonResponse
     {
         $models = CarModelResource::collection($this->service->all());
 
@@ -107,11 +108,11 @@ class CarModelController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function store(StoreCarModelRequest $request)
+    public function store(StoreCarModelRequest $request): JsonResponse
     {
         $model = $this->service->create($request->validated());
 
-        return $this->success(CarModelResource::make($model), 'Autó típus létrehozva', 200);
+        return $this->success(CarModelResource::make($model), 'Autó típus létrehozva', 201);
     }
 
     /**
@@ -152,7 +153,7 @@ class CarModelController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function show(CarModel $carModel)
+    public function show(CarModel $carModel): JsonResponse
     {
         return $this->success(CarModelResource::make($carModel->load('brand')), 'Autó típus adatai', 200);
     }
@@ -212,7 +213,7 @@ class CarModelController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function update(UpdateCarModelRequest $request, CarModel $carModel)
+    public function update(UpdateCarModelRequest $request, CarModel $carModel): JsonResponse
     {
         $updated = $this->service->update($carModel->id, $request->validated());
 
@@ -263,7 +264,7 @@ class CarModelController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function destroy(CarModel $carModel)
+    public function destroy(CarModel $carModel): JsonResponse
     {
         $this->service->delete($carModel->id);
 

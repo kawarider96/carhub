@@ -11,6 +11,12 @@ class AuthService
         protected UserRepository $users
     ) {}
 
+    /**
+     * Regisztrál egy új felhasználót.
+     *
+     * @param array<string, mixed> $data
+     * @return User
+     */
     public function register(array $data)
     {
         $data['password'] = Hash::make($data['password']);
@@ -20,6 +26,15 @@ class AuthService
         return $this->users->create($data);
     }
 
+    /**
+     * Bejelentkezési logika.
+     *
+     * @return array{
+     *     status: bool,
+     *     user?: User,
+     *     error?: string
+     * }
+     */
     public function login(string $username, string $password)
     {
         $user = $this->users->findByUsername($username);

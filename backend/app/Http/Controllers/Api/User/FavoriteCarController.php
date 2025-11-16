@@ -10,11 +10,14 @@ use App\Models\FavoriteCar;
 use App\Services\FavoriteCarService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 
 class FavoriteCarController extends Controller
 {
     use ApiResponse;
-
+    use AuthorizesRequests;
+    
     public function __construct(
         protected FavoriteCarService $service
     ) {}
@@ -37,10 +40,8 @@ class FavoriteCarController extends Controller
      *     )
      * )
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $this->authorize('viewAny');
-
         $favorites = $this->service->forUser($request->user()->id);
 
         return $this->success(FavoriteCarResource::collection($favorites), 'Kedvenc autók listája', 200);
@@ -68,9 +69,9 @@ class FavoriteCarController extends Controller
      *     )
      * )
      */
-    public function store(StoreFavoriteCarRequest $request)
+    public function store(StoreFavoriteCarRequest $request): JsonResponse
     {
-        $favorite = $this->service->create($request->user()->id, $request->validated());
+        $favorite = $this->service->create($request->validated());
 
         return $this->success(FavoriteCarResource::make($favorite), 'Kedvenc autó létrehozva', 201);
     }
@@ -99,7 +100,7 @@ class FavoriteCarController extends Controller
      *     )
      * )
      */
-    public function show(Request $request, FavoriteCar $favoriteCar)
+    public function show(Request $request, FavoriteCar $favoriteCar): JsonResponse
     {
         $this->authorize('view', $favoriteCar);
 
@@ -138,7 +139,7 @@ class FavoriteCarController extends Controller
      *     )
      * )
      */
-    public function update(UpdateFavoriteCarRequest $request, FavoriteCar $favoriteCar)
+    public function update(UpdateFavoriteCarRequest $request, FavoriteCar $favoriteCar): JsonResponse
     {
         $this->authorize('update', $favoriteCar);
 
@@ -170,7 +171,7 @@ class FavoriteCarController extends Controller
      *     )
      * )
      */
-    public function destroy(Request $request, FavoriteCar $favoriteCar)
+    public function destroy(Request $request, FavoriteCar $favoriteCar): JsonResponse
     {
         $this->authorize('delete', $favoriteCar);
 

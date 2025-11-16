@@ -13,6 +13,8 @@ class CarImageService
 
     /**
      * Adott kedvenc autóhoz tartozó képek listázása.
+     *
+     * @return Collection<int, CarImage>
      */
     public function getByFavoriteCar(int $favoriteCarId)
     {
@@ -22,8 +24,10 @@ class CarImageService
     /**
      * Több kép feltöltése egyszerre.
      *
-     * @param int   $favoriteCarId
-     * @param array $files  // UploadedFile[] tömb
+     * @param int $favoriteCarId
+     * @param UploadedFile[] $files
+     *
+     * @return CarImage[]
      */
     public function uploadImages(int $favoriteCarId, array $files): array
     {
@@ -43,6 +47,8 @@ class CarImageService
 
     /**
      * Egy kép törlése.
+     *
+     * @return bool|null
      */
     public function delete(int $id)
     {

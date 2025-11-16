@@ -2,40 +2,80 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Middleware;
+namespace Tests\Unit\Middleware;
 
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class EnsureUserIsActiveTest extends TestCase
 {
-    use RefreshDatabase;
-
-    public function test_guest_gets_unauthorized(): void
+    private function makeRequestWithUser($user): Request
     {
-        $this->getJson('/api/users')
-            ->assertStatus(401);
+        $req = Request::create('/active-test', 'GET');
+        $req->setUserResolver(fn () => $user);
+        return $req;
     }
 
-    public function test_inactive_user_is_blocked(): void
+    private function next()
     {
-        $user = User::factory()->create(['role' => 'admin', 'is_active' => false]);
-
-        \Laravel\Sanctum\Sanctum::actingAs($user);
-
-        $this->getJson('/api/users')
-            ->assertStatus(423); // Locked
+        return function () {
+            return response()->json(['passed' => true], 200);
+        };
     }
 
-    public function test_active_user_can_access(): void
+    //────────────────────────────────────────────
+    // 1) Aktív user → átengedi
+    //────────────────────────────────────────────
+    #[Test]
+    public function test_allows_active_user(): void
     {
-        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $user = new User();
+        $user->is_active = true;
 
-        \Laravel\Sanctum\Sanctum::actingAs($admin);
+        $middleware = new EnsureUserIsActive();
+        $request = $this->makeRequestWithUser($user);
 
-        $this->getJson('/api/users')
-            ->assertOk()
-            ->assertJsonStructure(['data']);
+        $response = $middleware->handle($request, $this->next());
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(['passed' => true], $response->getData(true));
+    }
+
+    //────────────────────────────────────────────
+    // 2) Inaktív user → blokkolás, 423
+    //────────────────────────────────────────────
+    #[Test]
+    public function test_blocks_inactive_user(): void
+    {
+        $user = new User();
+        $user->is_active = false;
+
+        $middleware = new EnsureUserIsActive();
+        $request = $this->makeRequestWithUser($user);
+
+        $response = $middleware->handle($request, $this->next());
+
+        $this->assertEquals(423, $response->getStatusCode());
+
+        $data = $response->getData(true);
+        $this->assertEquals('error', $data['status']);
+        $this->assertEquals('A felhasználói fiók zárolva van', $data['message']);
+    }
+
+    //────────────────────────────────────────────
+    // 3) Nincs user → TypeError
+    //────────────────────────────────────────────
+    #[Test]
+    public function test_throws_error_when_user_is_null(): void
+    {
+        $middleware = new EnsureUserIsActive();
+        $request = $this->makeRequestWithUser(null);
+
+        $this->expectException(\ErrorException::class);
+
+        $middleware->handle($request, $this->next());
     }
 }
