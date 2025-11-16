@@ -3,76 +3,79 @@
 namespace App\Http\Controllers\Web\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\FavoriteCar;
-use App\Models\CarImage;
-use Illuminate\Http\Request;
+use App\Services\FavoriteCarService;
+use App\Services\CarImageService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
 
 /**
- * Class DashboardController
+ * Felhasználói dashboard
  *
- * Felhasználói dashboard kezelése.
- * Megjeleníti a statisztikákat, legutóbbi módosított elemeket és gyorsműveleteket.
- *
- * @package App\Http\Controllers\Web\User
+ * Megjeleníti:
+ * - kedvenc autók számát
+ * - feltöltött képek számát
+ * - utoljára módosított kedvenc autót
+ * - legutóbb módosított autók listáját
  */
-class DashboardController extends Controller implements HasMiddleware
+class DashboardController extends Controller
 {
-    /**
-     * Middleware deklaráció – Laravel 11 standard
-     *
-     * @return array<int, \Illuminate\Routing\Controllers\Middleware>
-     */
-    public static function middleware(): array
-    {
-        return [
-            new Middleware('auth'),
-            new Middleware('active'),
-        ];
-    }
+    public function __construct(
+        protected FavoriteCarService $favoriteCars,
+        protected CarImageService $images
+    ) {}
 
     /**
-     * A dashboard főoldala.
-     *
-     * Itt jelennek meg:
-     * - kedvenc autók száma
-     * - feltöltött képek száma
-     * - utoljára módosított autó
-     * - legutóbb szerkesztett autók listája
-     *
-     * @return View
+     * Dashboard főoldal.
      */
     public function index(): View
     {
-        $user = Auth::user();
+        $userId = Auth::id();
 
-        // Kedvenc autók darabszám
-        $favoriteCount = FavoriteCar::where('user_id', $user->id)->count();
+        //Felhasználó kedvenc autói
+        $favorites = $this->favoriteCars->forUser($userId);
 
-        // Feltöltött képek darabszáma
-        $imageCount = CarImage::whereHas('favoriteCar', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->count();
+        // Kedvenc autók száma
+        $favoriteCount = $favorites->count();
 
-        // Legutóbb módosított autó (created_at vagy updated_at alapján)
-        $lastModified = FavoriteCar::where('user_id', $user->id)
-            ->orderBy('updated_at', 'desc')
+        //Képek száma (repo + service segítségével)
+        $imageCount = $this->imagesCountForUser($userId);
+
+        //Utoljára módosított kedvenc autó
+        $lastModified = $favorites
+            ->sortByDesc('updated_at')
             ->first();
 
-        // Legutóbb módosított autók listája (2 elem)
-        $recentCars = FavoriteCar::where('user_id', $user->id)
-            ->orderBy('updated_at', 'desc')
-            ->take(2)
-            ->get();
+        //Legutóbb módosított autók (2 db)
+        $recentCars = $favorites
+            ->sortByDesc('updated_at')
+            ->take(2);
 
-        return view('user.dashboard', [
+        return view('pages.user.dashboard.index', [
             'favoriteCount' => $favoriteCount,
             'imageCount'    => $imageCount,
             'lastModified'  => $lastModified,
             'recentCars'    => $recentCars,
         ]);
+    }
+
+    /**
+     * Felhasználó összes képének száma.
+     *
+     * A CarImageService csak favorite_car_id alapján ad képeket,
+     * ezért itt ki kell számolni a felhasználó kedvenc autói alapján.
+     */
+    private function imagesCountForUser(int $userId): int
+    {
+        $favorites = $this->favoriteCars->forUser($userId);
+
+        $count = 0;
+
+        foreach ($favorites as $favorite) {
+            $count += $this->images
+                ->getByFavoriteCar($favorite->id)
+                ->count();
+        }
+
+        return $count;
     }
 }

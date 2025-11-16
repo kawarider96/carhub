@@ -4,7 +4,7 @@
 
 @section('content')
 
-@include('components.horizontalHeader')
+@include('components.ui.horizontalHeader')
 
 <!-- HERO SECTION -->
 <section class="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-14 items-center">
@@ -25,12 +25,13 @@
         </p>
 
         <div class="flex flex-col sm:flex-row gap-4 pt-4">
-            <a href="{{ route('user.login') }}"
-               class="bg-accent text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-green-400 transition text-center">
+            <a href="{{ route('auth.login') }}"
+            class="bg-accent text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-green-400 transition text-center">
                 Felhasználói bejelentkezés
             </a>
+
             <a href="{{ route('admin.login') }}"
-               class="bg-panel px-6 py-3 rounded-xl font-semibold shadow border border-border hover:border-accent transition text-center">
+            class="bg-panel px-6 py-3 rounded-xl font-semibold shadow border border-border hover:border-accent transition text-center">
                 Admin belépés
             </a>
         </div>

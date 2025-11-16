@@ -2,7 +2,7 @@
 
 @section('title', 'Vezérlőpult')
 
-@section('content')
+@section('page')
 
 <main class="ml-64 p-10 space-y-10">
 

@@ -4,130 +4,117 @@ namespace App\Http\Controllers\Web\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\AuthService;
-use Illuminate\Http\Request;
-use Illuminate\Contracts\View\View;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Contracts\View\View;
 
-/**
- * Class AuthController
- *
- * Kezeli a felhasználók és adminok bejelentkezését, regisztrációját és kijelentkezését.
- */
 class AuthController extends Controller
 {
     public function __construct(
         protected AuthService $authService
     ) {}
 
-    /**
-     * Felhasználói bejelentkezési oldal.
-     *
-     * @return View
-     */
+    /* -------------------------------------------------------------
+     | USER LOGIN (GET)
+     ------------------------------------------------------------- */
     public function showLoginForm(): View
     {
-        return view('auth.userLogin');
+        return view('pages.auth.userLogin');
     }
 
-    /**
-     * Felhasználói bejelentkezés (POST).
-     *
-     * @param  Request  $request
-     * @return RedirectResponse
-     */
-    public function login(Request $request): RedirectResponse
+    /* -------------------------------------------------------------
+     | USER LOGIN (POST)
+     ------------------------------------------------------------- */
+    public function login(LoginRequest $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'username' => ['required', 'string'],
-            'password' => ['required', 'string'],
-        ]);
+        $result = $this->authService->login(
+            $request->username,
+            $request->password
+        );
 
-        if (auth()->attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->route('dashboard')->with('success', 'Sikeres bejelentkezés.');
+        if ($result['status'] === true) {
+
+            // Session megújítás biztonság miatt
+            session()->regenerate();
+
+            auth()->login($result['user']);
+
+            return redirect()
+                ->route('dashboard.index')
+                ->with('success', 'Sikeres bejelentkezés.');
         }
 
+        // Hiba esetek: invalid, locked, stb.
         return back()->withErrors([
-            'username' => 'Hibás felhasználónév vagy jelszó.',
+            'username' => $result['error'] === 'locked'
+                ? 'A fiók zárolva lett 5 hibás próbálkozás miatt.'
+                : 'Hibás felhasználónév vagy jelszó.',
         ]);
     }
 
-    /**
-     * Felhasználói regisztrációs oldal.
-     *
-     * @return View
-     */
+    /* -------------------------------------------------------------
+     | USER REGISTRATION (GET)
+     ------------------------------------------------------------- */
     public function showRegisterForm(): View
     {
-        return view('auth.register');
+        return view('pages.auth.register');
     }
 
-    /**
-     * Felhasználói regisztráció (POST).
-     *
-     * @param  Request  $request
-     * @return RedirectResponse
-     */
-    public function register(Request $request): RedirectResponse
+    /* -------------------------------------------------------------
+     | USER REGISTRATION (POST)
+     ------------------------------------------------------------- */
+    public function register(RegisterRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'full_name'  => ['required', 'string', 'max:255'],
-            'username'   => ['required', 'string', 'max:255', 'unique:users,username'],
-            'password'   => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        $this->authService->register($request->validated());
 
-        $this->authService->register($validated);
-
-        return redirect()->route('user.login')->with('success', 'Sikeres regisztráció. Jelentkezzen be.');
+        return redirect()
+            ->route('auth.login')
+            ->with('success', 'Sikeres regisztráció. Jelentkezzen be!');
     }
 
-    /**
-     * Admin bejelentkezési oldal.
-     *
-     * @return View
-     */
+    /* -------------------------------------------------------------
+     | ADMIN LOGIN (GET)
+     ------------------------------------------------------------- */
     public function showAdminLoginForm(): View
     {
-        return view('auth.adminLogin');
+        return view('pages.auth.adminLogin');
     }
 
-    /**
-     * Admin bejelentkezés (POST).
-     *
-     * @param  Request  $request
-     * @return RedirectResponse
-     */
-    public function adminLogin(Request $request): RedirectResponse
+    /* -------------------------------------------------------------
+     | ADMIN LOGIN (POST)
+     ------------------------------------------------------------- */
+    public function adminLogin(LoginRequest $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'username' => ['required', 'string'],
-            'password' => ['required', 'string'],
-        ]);
+        $result = $this->authService->login(
+            $request->username,
+            $request->password
+        );
 
-        if (auth()->attempt($credentials)) {
-
-            // Csak admin léphet be admin oldalra
-            if (auth()->user()->role !== 'admin') {
-                auth()->logout();
-                return back()->withErrors([
-                    'username' => 'Nincs jogosultsága az admin felületre.'
-                ]);
-            }
-
-            $request->session()->regenerate();
-            return redirect()->route('home')->with('success', 'Admin bejelentkezés sikeres.');
+        if (!$result['status']) {
+            return back()->withErrors([
+                'username' => 'Hibás felhasználónév vagy jelszó.',
+            ]);
         }
 
-        return back()->withErrors([
-            'username' => 'Hibás admin felhasználónév vagy jelszó.',
-        ]);
+        // Csak admin léphet be
+        if ($result['user']->role !== 'admin') {
+            return back()->withErrors([
+                'username' => 'Nincs jogosultsága az admin felületre.',
+            ]);
+        }
+
+        session()->regenerate();
+        auth()->login($result['user']);
+
+        return redirect()
+            ->route('home')
+            ->with('success', 'Admin bejelentkezés sikeres.');
     }
 
-    /**
-     * Kijelentkezés.
-     *
-     * @return RedirectResponse
-     */
+    /* -------------------------------------------------------------
+     | LOGOUT
+     ------------------------------------------------------------- */
     public function logout(): RedirectResponse
     {
         auth()->logout();

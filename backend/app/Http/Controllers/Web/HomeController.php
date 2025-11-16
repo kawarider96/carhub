@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Class HomeController
@@ -17,8 +18,12 @@ class HomeController extends Controller
      *
      * @return View
      */
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
-        return view('welcome');
+        if (auth()->check()) {
+            return redirect()->route('dashboard.index');
+        }
+
+        return view('pages.welcome');
     }
 }
