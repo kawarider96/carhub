@@ -4,6 +4,9 @@ namespace App\Repositories;
 
 use App\Models\CarImage;
 
+/**
+ * @extends BaseRepository<CarImage>
+ */
 class CarImageRepository extends BaseRepository
 {
     public function __construct(CarImage $model)
@@ -13,6 +16,7 @@ class CarImageRepository extends BaseRepository
 
     /**
      * Képek lekérése egy kedvenc autóhoz.
+     * @return \Illuminate\Database\Eloquent\Collection<int, CarImage>
      */
     public function getByFavoriteCar(int $favoriteCarId)
     {
@@ -24,7 +28,9 @@ class CarImageRepository extends BaseRepository
 
     /**
      * Egy kép létrehozása – bináris tartalommal és MIME típussal.
-     */
+     * @param array<string, mixed> $data
+     * @return CarImage
+    */
     public function create(array $data): CarImage
     {
         return $this->model->create([

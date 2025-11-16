@@ -10,6 +10,8 @@ use App\Services\CarBrandService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use App\Traits\ApiResponse;
+use App\Models\CarBrand;
+use Illuminate\Http\JsonResponse;
 
 class CarBrandController extends Controller implements HasMiddleware
 {
@@ -45,7 +47,7 @@ class CarBrandController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function index() //admin | user
+    public function index(): JsonResponse
     {
         $brands = CarBrandResource::collection($this->service->all());
 
@@ -88,7 +90,7 @@ class CarBrandController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function store(StoreCarBrandRequest $request) //admin
+    public function store(StoreCarBrandRequest $request): JsonResponse
     {
         $brand = $this->service->create($request->validated());
 
@@ -127,7 +129,7 @@ class CarBrandController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function show(CarBrand $brand) //admin | user
+    public function show(CarBrand $brand): JsonResponse
     {
         return $this->success(CarBrandResource::make($brand), 'Márka adatai', 200);
     }
@@ -181,7 +183,7 @@ class CarBrandController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function update(UpdateCarBrandRequest $request, CarBrand $brand)
+    public function update(UpdateCarBrandRequest $request, CarBrand $brand): JsonResponse
     {
         $updated = $this->service->update($brand->id, $request->validated());
 
@@ -226,7 +228,7 @@ class CarBrandController extends Controller implements HasMiddleware
      *     )
      * )
      */
-    public function destroy(CarBrand $brand)
+    public function destroy(CarBrand $brand): JsonResponse
     {
         $this->service->delete($brand->id);
 

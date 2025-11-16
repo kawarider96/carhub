@@ -4,6 +4,9 @@ namespace App\Repositories;
 
 use App\Models\UserRequest;
 
+/**
+ * @extends BaseRepository<UserRequest>
+ */
 class UserRequestRepository extends BaseRepository
 {
     public function __construct(UserRequest $model)
@@ -12,28 +15,28 @@ class UserRequestRepository extends BaseRepository
     }
 
     /**
-     * Visszaadja az összes "open" státuszú kérelmeket.
+     * Megkeresi a felhasználó nyitott kérelmét.
      *
-     * @return \Illuminate\Support\Collection
-     */
-    public function openRequests()
-    {
-        return $this->model
-            ->where('status', 'open')
-            ->get();
-    }
-
-    /**
-     * Megkeresi a felhasználóhoz tartozó törlési kérelmet.
-     *
-     * @param int $userId
      * @return UserRequest|null
      */
-    public function openDeleteRequestsByUser(int $userId): ?UserRequest
+    public function openRequestsByUser(int $userId): ?UserRequest
     {
         return $this->model
             ->where('user_id', $userId)
-            ->where('type', 'delete_account')
+            ->where('status', 'open')
+            ->first();
+    }
+
+    /**
+     * Megkeresi a felhasználó adott típusú nyitott kérelmét.
+     *
+     * @return UserRequest|null
+     */
+    public function findOpenByUserAndType(int $userId, string $type): ?UserRequest
+    {
+        return $this->model
+            ->where('user_id', $userId)
+            ->where('type', $type)
             ->where('status', 'open')
             ->first();
     }

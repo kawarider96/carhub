@@ -4,6 +4,9 @@ namespace App\Repositories;
 
 use App\Models\FavoriteCar;
 
+/**
+ * @extends BaseRepository<FavoriteCar>
+ */
 class FavoriteCarRepository extends BaseRepository
 {
     public function __construct(FavoriteCar $model)
@@ -15,7 +18,7 @@ class FavoriteCarRepository extends BaseRepository
      * Visszaadja a felhasználó összes kedvenc autóját.
      *
      * @param int $userId
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Database\Eloquent\Collection<int, FavoriteCar>
      */
     public function getByUser(int $userId)
     {

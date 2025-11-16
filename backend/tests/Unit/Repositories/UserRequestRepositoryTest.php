@@ -25,205 +25,148 @@ class UserRequestRepositoryTest extends TestCase
     }
 
     // ─────────────────────────────────────────────
-    // 1) openRequests – visszaadja az összes "open" státuszú requestet
+    // 1) openRequestsByUser – visszaadja a user OPEN requestjét
     // ─────────────────────────────────────────────
-
     #[Test]
-    public function test_open_requests_returns_only_open_requests(): void
-    {
-        UserRequest::factory()->create(['status' => 'open']);
-        UserRequest::factory()->create(['status' => 'approved']);
-        UserRequest::factory()->create(['status' => 'rejected']);
-
-        $res = $this->repo->openRequests();
-
-        $this->assertCount(1, $res);
-        $this->assertEquals('open', $res->first()->status);
-    }
-
-    // ─────────────────────────────────────────────
-    // 2) openRequests – üres lista
-    // ─────────────────────────────────────────────
-
-    #[Test]
-    public function test_open_requests_returns_empty_collection_when_none(): void
-    {
-        $res = $this->repo->openRequests();
-
-        $this->assertCount(0, $res);
-    }
-
-    // ─────────────────────────────────────────────
-    // 3) openDeleteRequestsByUser – helyes találat
-    // ─────────────────────────────────────────────
-
-    #[Test]
-    public function test_open_delete_request_by_user_returns_correct_request(): void
+    public function open_requests_by_user_returns_open_request(): void
     {
         $user = User::factory()->create();
 
+        $open = UserRequest::factory()->create([
+            'user_id' => $user->id,
+            'status'  => 'open',
+        ]);
+
+        $res = $this->repo->openRequestsByUser($user->id);
+
+        $this->assertNotNull($res);
+        $this->assertEquals($open->id, $res->id);
+    }
+
+    // ─────────────────────────────────────────────
+    // 2) openRequestsByUser – ha nincs találat → null
+    // ─────────────────────────────────────────────
+    #[Test]
+    public function open_requests_by_user_returns_null_when_none(): void
+    {
+        $user = User::factory()->create();
+
+        // nincs open státuszú request
         UserRequest::factory()->create([
             'user_id' => $user->id,
-            'type' => 'delete_account',
+            'status'  => 'approved',
+        ]);
+
+        $res = $this->repo->openRequestsByUser($user->id);
+
+        $this->assertNull($res);
+    }
+
+    // ─────────────────────────────────────────────
+    // 3) openRequestsByUser – más user requestje NEM jelenik meg
+    // ─────────────────────────────────────────────
+    #[Test]
+    public function open_requests_by_user_returns_only_given_user(): void
+    {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        UserRequest::factory()->create([
+            'user_id' => $user2->id,
             'status' => 'open',
         ]);
 
-        $req = $this->repo->openDeleteRequestsByUser($user->id);
+        $user1Req = UserRequest::factory()->create([
+            'user_id' => $user1->id,
+            'status'  => 'open',
+        ]);
 
-        $this->assertNotNull($req);
-        $this->assertEquals($user->id, $req->user_id);
-        $this->assertEquals('delete_account', $req->type);
-        $this->assertEquals('open', $req->status);
+        $res = $this->repo->openRequestsByUser($user1->id);
+
+        $this->assertNotNull($res);
+        $this->assertEquals($user1Req->id, $res->id);
     }
 
     // ─────────────────────────────────────────────
-    // 4) openDeleteRequestsByUser – nincs delete típusú
+    // 4) findOpenByUserAndType – helyes találat
     // ─────────────────────────────────────────────
-
     #[Test]
-    public function test_open_delete_request_by_user_returns_null_when_wrong_type(): void
+    public function find_open_by_user_and_type_returns_correct_request(): void
+    {
+        $user = User::factory()->create();
+
+        $req = UserRequest::factory()->create([
+            'user_id' => $user->id,
+            'type'    => 'delete_account',
+            'status'  => 'open',
+        ]);
+
+        $res = $this->repo->findOpenByUserAndType($user->id, 'delete_account');
+
+        $this->assertNotNull($res);
+        $this->assertEquals($req->id, $res->id);
+    }
+
+    // ─────────────────────────────────────────────
+    // 5) findOpenByUserAndType – rossz típus → null
+    // ─────────────────────────────────────────────
+    #[Test]
+    public function find_open_by_user_and_type_returns_null_for_wrong_type(): void
     {
         $user = User::factory()->create();
 
         UserRequest::factory()->create([
             'user_id' => $user->id,
-            'type' => 'modify', // nem delete_account
-            'status' => 'open',
+            'type'    => 'missing_brand',
+            'status'  => 'open',
         ]);
 
-        $req = $this->repo->openDeleteRequestsByUser($user->id);
+        $res = $this->repo->findOpenByUserAndType($user->id, 'delete_account');
 
-        $this->assertNull($req);
+        $this->assertNull($res);
     }
 
     // ─────────────────────────────────────────────
-    // 5) openDeleteRequestsByUser – nem open státusz
+    // 6) findOpenByUserAndType – nem open → null
     // ─────────────────────────────────────────────
-
     #[Test]
-    public function test_open_delete_request_by_user_returns_null_when_not_open_status(): void
+    public function find_open_by_user_and_type_returns_null_when_not_open(): void
     {
         $user = User::factory()->create();
 
         UserRequest::factory()->create([
             'user_id' => $user->id,
-            'type' => 'delete_account',
-            'status' => 'approved', // nem open
+            'type'    => 'delete_account',
+            'status'  => 'approved',
         ]);
 
-        $req = $this->repo->openDeleteRequestsByUser($user->id);
+        $res = $this->repo->findOpenByUserAndType($user->id, 'delete_account');
 
-        $this->assertNull($req);
+        $this->assertNull($res);
     }
 
     // ─────────────────────────────────────────────
-    // 6) openDeleteRequestsByUser – ha több van: elsőt adja vissza
+    // 7) findOpenByUserAndType – több találat → első jön vissza
     // ─────────────────────────────────────────────
-
     #[Test]
-    public function test_open_delete_request_returns_first_if_multiple(): void
+    public function find_open_by_user_and_type_returns_first_when_multiple(): void
     {
         $user = User::factory()->create();
 
         $first = UserRequest::factory()->create([
             'user_id' => $user->id,
-            'type' => 'delete_account',
-            'status' => 'open',
+            'type'    => 'missing_brand',
+            'status'  => 'open',
         ]);
 
         UserRequest::factory()->create([
             'user_id' => $user->id,
-            'type' => 'delete_account',
-            'status' => 'open',
+            'type'    => 'missing_brand',
+            'status'  => 'open',
         ]);
 
-        $req = $this->repo->openDeleteRequestsByUser($user->id);
+        $res = $this->repo->findOpenByUserAndType($user->id, 'missing_brand');
 
-        $this->assertEquals($first->id, $req->id);
-    }
-
-    // ─────────────────────────────────────────────
-    // 7 – ADV: Query count (1 query várható)
-    // ─────────────────────────────────────────────
-
-    #[Test]
-    public function test_open_requests_executes_single_query(): void
-    {
-        UserRequest::factory()->count(3)->create(['status' => 'open']);
-
-        \DB::enableQueryLog();
-
-        $this->repo->openRequests();
-
-        $queries = \DB::getQueryLog();
-
-        // 1 query = SELECT * FROM user_requests WHERE status = 'open'
-        $this->assertCount(1, $queries);
-    }
-
-    // ─────────────────────────────────────────────
-    // 8 – ADV: instance type ellenőrzés
-    // ─────────────────────────────────────────────
-
-    #[Test]
-    public function test_open_delete_request_returns_userrequest_instance(): void
-    {
-        $user = User::factory()->create();
-
-        UserRequest::factory()->create([
-            'user_id' => $user->id,
-            'type' => 'delete_account',
-            'status' => 'open',
-        ]);
-
-        $req = $this->repo->openDeleteRequestsByUser($user->id);
-
-        $this->assertInstanceOf(UserRequest::class, $req);
-    }
-
-    // ─────────────────────────────────────────────
-    // 9 – ADV: minden WHERE feltétel helyes
-    // ─────────────────────────────────────────────
-
-    #[Test]
-    public function test_open_delete_request_applies_all_where_conditions(): void
-    {
-        $user = User::factory()->create();
-
-        // 3 hibás request
-        // 1) Wrong type
-        UserRequest::factory()->create([
-            'user_id' => $user->id,
-            'type' => 'modify',
-            'status' => 'open',
-        ]);
-
-        // 2) Wrong status
-        UserRequest::factory()->create([
-            'user_id' => $user->id,
-            'type' => 'delete_account',
-            'status' => 'approved',
-        ]);
-
-        // 3) Different user
-        $otherUser = User::factory()->create();
-
-        UserRequest::factory()->create([
-            'user_id' => $otherUser->id,
-            'type' => 'delete_account',
-            'status' => 'open',
-        ]);
-
-        // 1 jó request
-        $valid = UserRequest::factory()->create([
-            'user_id' => $user->id,
-            'type' => 'delete_account',
-            'status' => 'open',
-        ]);
-
-        $res = $this->repo->openDeleteRequestsByUser($user->id);
-
-        $this->assertNotNull($res);
-        $this->assertEquals($valid->id, $res->id);
+        $this->assertEquals($first->id, $res->id);
     }
 }

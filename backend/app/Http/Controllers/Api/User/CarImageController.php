@@ -12,10 +12,13 @@ use App\Models\FavoriteCar;
 use App\Services\CarImageService;
 use App\Traits\ApiResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CarImageController extends Controller
 {
     use ApiResponse;
+    use AuthorizesRequests;
 
     public function __construct(
         protected CarImageService $service
@@ -55,7 +58,7 @@ class CarImageController extends Controller
      *     )
      * )
      */
-    public function index(FavoriteCar $favoriteCar)
+    public function index(FavoriteCar $favoriteCar): JsonResponse
     {
         $this->authorize('view', $favoriteCar);
 
@@ -114,7 +117,7 @@ class CarImageController extends Controller
      *     )
      * )
      */
-    public function store(CarImageStoreRequest $request, FavoriteCar $favoriteCar)
+    public function store(StoreCarImageRequest $request, FavoriteCar $favoriteCar): JsonResponse
     {
         $this->authorize('create', $favoriteCar);
 
@@ -218,7 +221,7 @@ class CarImageController extends Controller
      *     )
      * )
      */
-    public function destroy(CarImage $carImage)
+    public function destroy(CarImage $carImage): JsonResponse
     {
         $this->authorize('delete', $carImage->favoriteCar);
 

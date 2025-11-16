@@ -12,7 +12,9 @@ class CarModelService
     ) {}
 
     /**
-     * Az összes autómodell listázása.
+     * Az összes autómodell listázása márkával betöltve.
+     *
+     * @return Collection<int, CarModel>
      */
     public function all()
     {
@@ -21,6 +23,8 @@ class CarModelService
 
     /**
      * Egy adott márkához tartozó típusok listája.
+     *
+     * @return Collection<int, CarModel>
      */
     public function byBrand(int $brandId)
     {
@@ -29,6 +33,9 @@ class CarModelService
 
     /**
      * Új modell létrehozása.
+     *
+     * @param array<string, mixed> $data
+     * @return CarModel
      */
     public function create(array $data)
     {
@@ -37,6 +44,8 @@ class CarModelService
 
     /**
      * Egy modell lekérése ID alapján.
+     *
+     * @return CarModel
      */
     public function find(int $id): ?CarModel
     {
@@ -45,6 +54,9 @@ class CarModelService
 
     /**
      * Modell frissítése.
+     *
+     * @param array<string, mixed> $data
+     * @return CarModel
      */
     public function update(int $id, array $data)
     {
@@ -53,8 +65,10 @@ class CarModelService
 
     /**
      * Modell törlése.
+     *
+     * @return bool|null
      */
-    public function delete(int $id): bool
+    public function delete(int $id)
     {
         return $this->models->delete($id);
     }

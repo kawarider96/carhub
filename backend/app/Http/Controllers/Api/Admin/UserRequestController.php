@@ -8,9 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UserRequestResource;
 use App\Models\UserRequest;
 use App\Services\UserRequestService;
+use App\Http\Requests\UserRequest\StoreUserRequest;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use App\Traits\ApiResponse;
+use Illuminate\Http\JsonResponse;
 
 class UserRequestController extends Controller implements HasMiddleware
 {
@@ -52,7 +54,7 @@ class UserRequestController extends Controller implements HasMiddleware
      *   )
      * )
      */
-    public function index()
+    public function index(): JsonResponse
     {
         $requests = UserRequestResource::collection($this->service->all());
 
@@ -62,12 +64,21 @@ class UserRequestController extends Controller implements HasMiddleware
     /**
      * @OA\Post(
      *   path="/requests",
-     *   summary="Új törlési kérés indítása a saját fiókhoz (USER)",
+     *   summary="Felhasználói kérés indítása (delete_account | missing_brand)",
      *   tags={"UserRequests"},
+     *
+     *   @OA\RequestBody(
+     *       required=true,
+     *       @OA\JsonContent(
+     *           required={"type"},
+     *           @OA\Property(property="type", type="string", enum={"delete_account", "missing_brand"}),
+     *           @OA\Property(property="payload", type="object", nullable=true)
+     *       )
+     *   ),
      *
      *   @OA\Response(
      *     response=201,
-     *     description="Kérés létrehozva",
+     *     description="Kérés sikeresen létrehozva",
      *     @OA\JsonContent(ref="#/components/schemas/UserRequestSingleResponse")
      *   ),
      *
@@ -78,17 +89,33 @@ class UserRequestController extends Controller implements HasMiddleware
      *   ),
      *
      *   @OA\Response(
+     *     response=403,
+     *     description="Admin felhasználó nem hozhat létre kérelmet",
+     *     @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *   ),
+     *
+     *   @OA\Response(
      *     response=409,
-     *     description="Már létezik nyitott kérés",
+     *     description="Már létezik nyitott ugyanilyen típusú kérés",
      *     @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
      *   )
      * )
      */
-    public function store()
+    public function store(StoreUserRequest $request): JsonResponse
     {
-        $userId = auth()->id();
+        $user = auth()->user();
 
-        $result = $this->service->createRequest($userId);
+        // Admin nem hozhat létre kérést
+        if ($user->role === 'admin') {
+            return $this->error('Admin nem indíthat kérelmet', 403);
+        }
+
+        $validated = $request->validated();
+
+        $type    = $validated['type'];
+        $payload = $validated['payload'] ?? [];
+
+        $result = $this->service->createRequest($user->id, $type, $payload);
 
         if (!$result) {
             return $this->error('Már létezik nyitott kérés', 409);
@@ -136,15 +163,11 @@ class UserRequestController extends Controller implements HasMiddleware
      *   )
      * )
      */
-    public function approve(UserRequest $userRequest)
+    public function approve(UserRequest $userRequest): JsonResponse
     {
         $approved = $this->service->approve($userRequest->id, auth()->id());
 
-        return $this->success(
-            UserRequestResource::make($approved),
-            'Kérés jóváhagyva',
-            200
-        );
+        return $this->success(UserRequestResource::make($approved), 'Kérés jóváhagyva', 200);
     }
 
     /**
@@ -186,14 +209,10 @@ class UserRequestController extends Controller implements HasMiddleware
      *   )
      * )
      */
-    public function reject(UserRequest $userRequest)
+    public function reject(UserRequest $userRequest): JsonResponse
     {
         $rejected = $this->service->reject($userRequest->id, auth()->id());
 
-        return $this->success(
-            UserRequestResource::make($rejected),
-            'Kérés elutasítva',
-            200
-        );
+        return $this->success(UserRequestResource::make($rejected), 'Kérés elutasítva', 200);
     }
 }

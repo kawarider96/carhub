@@ -14,6 +14,14 @@ class EnsureUserIsActive
     {
         $user = $request->user();
 
+        // Ha nem bejelentkezett → Sanctum fogja kezelni (401)
+        if (!$user) {
+            return response()->json([
+                'message' => 'Nincs bejelentkezve',
+                'status'  => false,
+            ], 401);
+        }
+
         // Ha az account nem aktív → 423 Locked
         if (!$user->is_active) {
             return $this->error('A felhasználói fiók zárolva van', 423);

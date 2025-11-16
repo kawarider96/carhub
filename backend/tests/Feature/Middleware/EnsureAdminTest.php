@@ -2,40 +2,87 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Middleware;
+namespace Tests\Unit\Middleware;
 
+use App\Http\Middleware\EnsureAdmin;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class EnsureAdminTest extends TestCase
 {
-    use RefreshDatabase;
-
-    public function test_guest_gets_unauthorized(): void
+    private function makeRequestWithUser($user): Request
     {
-        $this->getJson('/api/users')
-            ->assertStatus(401);
+        $req = Request::create('/admin-test', 'GET');
+        $req->setUserResolver(fn () => $user);
+        return $req;
     }
 
-    public function test_non_admin_gets_forbidden(): void
+    private function next()
     {
-        $user = User::factory()->create(['role' => 'user']);
-
-        \Laravel\Sanctum\Sanctum::actingAs($user);
-
-        $this->getJson('/api/users')
-            ->assertStatus(403);
+        return function ($req) {
+            return response()->json(['passed' => true], 200);
+        };
     }
 
-    public function test_admin_can_access(): void
+    //────────────────────────────────────────────
+    // 1) Admin → átengedi
+    //────────────────────────────────────────────
+    #[Test]
+    public function test_allows_admin_user(): void
     {
-        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $admin = new User();
+        $admin->role = 'admin';
 
-        \Laravel\Sanctum\Sanctum::actingAs($admin);
+        $middleware = new EnsureAdmin();
+        $request = $this->makeRequestWithUser($admin);
 
-        $this->getJson('/api/users')
-            ->assertOk()
-            ->assertJsonStructure(['data']);
+        $response = $middleware->handle($request, $this->next());
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(
+            ['passed' => true],
+            $response->getData(true)
+        );
+    }
+
+    //────────────────────────────────────────────
+    // 2) Nem admin → 403
+    //────────────────────────────────────────────
+    #[Test]
+    public function test_blocks_non_admin_user(): void
+    {
+        $user = new User();
+        $user->role = 'user';
+
+        $middleware = new EnsureAdmin();
+        $request = $this->makeRequestWithUser($user);
+
+        $response = $middleware->handle($request, $this->next());
+
+        $this->assertEquals(403, $response->getStatusCode());
+
+        $json = $response->getData(true);
+        $this->assertEquals('error', $json['status']);
+        $this->assertEquals('Nincs jogosultságod ehhez a művelethez', $json['message']);
+    }
+
+    //────────────────────────────────────────────
+    // 3) Nincs user → 403
+    //────────────────────────────────────────────
+    #[Test]
+    public function test_blocks_when_no_user_logged_in(): void
+    {
+        $middleware = new EnsureAdmin();
+        $request = $this->makeRequestWithUser(null);
+
+        $response = $middleware->handle($request, $this->next());
+
+        $this->assertEquals(403, $response->getStatusCode());
+
+        $json = $response->getData(true);
+        $this->assertEquals('error', $json['status']);
+        $this->assertEquals('Nincs jogosultságod ehhez a művelethez', $json['message']);
     }
 }
