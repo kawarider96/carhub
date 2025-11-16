@@ -4,7 +4,8 @@ namespace App\Services;
 
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Hash;
-
+use App\Models\User;
+use Illuminate\Support\Collection;
 
 class UserService
 {

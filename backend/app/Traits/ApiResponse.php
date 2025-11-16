@@ -2,9 +2,22 @@
 
 namespace App\Traits;
 
+use Illuminate\Http\JsonResponse;
+
+/**
+ * @mixin \Illuminate\Routing\MiddlewareNameResolver
+ */
 trait ApiResponse
 {
-    protected function success($data = null, string $message = 'Sikeres művelet', int $status = 200)
+    /**
+     * Sikeres JSON válasz
+     *
+     * @param mixed $data
+     * @param string $message
+     * @param int $status
+     * @return JsonResponse
+     */
+    protected function success($data = null, string $message = 'Sikeres művelet', int $status = 200): JsonResponse
     {
         return response()->json([
             'status'  => 'success',
@@ -13,7 +26,15 @@ trait ApiResponse
         ], $status);
     }
 
-    protected function error(string $message = 'Hiba történt', int $status = 400, $errors = null)
+    /**
+     * Hibás JSON válasz
+     *
+     * @param string $message
+     * @param int $status
+     * @param array<string, mixed>|string|null $errors
+     * @return JsonResponse
+     */
+    protected function error(string $message = 'Hiba történt', int $status = 400, array|string|null $errors = null): JsonResponse
     {
         return response()->json([
             'status'  => 'error',
