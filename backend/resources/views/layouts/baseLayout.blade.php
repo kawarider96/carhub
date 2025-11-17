@@ -1,4 +1,4 @@
-{{-- resources/views/layouts/dashboard.blade.php --}}
+{{-- resources/views/layouts/baseLayout.blade.php --}}
 
 @extends('layouts.app')
 

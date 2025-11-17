@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Auth\AuthController;
 use App\Http\Controllers\Web\User\DashboardController;
 use App\Http\Controllers\Web\User\FavoriteCarController;
+use App\Http\Controllers\Web\User\CarImageController;
+use App\Http\Controllers\Web\User\CarModelController;
 use App\Http\Controllers\Web\HomeController;
 
 /*
@@ -51,6 +53,10 @@ Route::post('/login', [AuthController::class, 'adminLogin'])->name('admin.login.
 
 Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+    // User által új autómodell rögzítése egy márkához
+    Route::post('/brands/{brand}/models', [CarModelController::class, 'store'])
+        ->name('brands.models.store');
 });
 
 /*
@@ -73,9 +79,6 @@ Route::middleware(['auth', 'active'])
         // Mentés
         Route::post('/', [FavoriteCarController::class, 'store'])->name('store');
 
-        // Megtekintés
-        Route::get('/{favoriteCar}', [FavoriteCarController::class, 'show'])->name('show');
-
         // Szerkesztő form
         Route::get('/{favoriteCar}/edit', [FavoriteCarController::class, 'edit'])->name('edit');
 
@@ -84,4 +87,26 @@ Route::middleware(['auth', 'active'])
 
         // Törlés
         Route::delete('/{favoriteCar}', [FavoriteCarController::class, 'destroy'])->name('destroy');
+
+        // Megtekintés
+        Route::get('/{favoriteCar}', [FavoriteCarController::class, 'show'])->name('show');
+
+        // --- Car Image routes (favorites alatt, auth+active) ---
+        Route::prefix('{favoriteCar}/images')
+            ->name('images.')
+            ->group(function () {
+
+                // Összes kép listázása (AJAX)
+                Route::get('/', [CarImageController::class, 'index'])->name('index');
+
+                // Képfeltöltés
+                Route::post('/', [CarImageController::class, 'store'])->name('store');
+
+                // Egy kép megjelenítése (bináris)
+                Route::get('/{image}', [CarImageController::class, 'show'])->name('show');
+
+                // Egy kép törlése
+                Route::delete('/{image}', [CarImageController::class, 'destroy'])->name('destroy');
+            });
+
     });

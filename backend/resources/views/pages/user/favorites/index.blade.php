@@ -2,19 +2,19 @@
 
 @section('page')
 
-<main class="ml-64 p-10 space-y-10">
+<main class="p-2 space-y-10">
 
     {{-- TITLE --}}
-    <x-favorites.title />
+    <x-favorites.index.title />
 
     {{-- ADD BUTTON --}}
-    <x-favorites.add-button />
+    <x-favorites.index.add-button />
 
     {{-- GRID --}}
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 pt-4">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-2 gap-8 pt-4">
 
         @forelse ($favorites as $car)
-            <x-favorites.card
+            <x-favorites.index.card
                 :id="$car->id"
                 :model="$car->carModel->name"
                 :brand="$car->carModel->brand->name"
@@ -31,4 +31,8 @@
 
 </main>
 
+@endsection
+
+@section('scripts')
+    @include('components.favorites.index.carousel-script')
 @endsection

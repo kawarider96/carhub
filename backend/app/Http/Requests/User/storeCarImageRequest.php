@@ -16,12 +16,10 @@ class StoreCarImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'images'   => ['required', 'array', 'min:1'],
+            'images'   => ['required'],
             'images.*' => [
                 'required',
                 'file',
-                'image',
-                'mimes:jpeg,jpg,png,webp',
                 'max:5120',
             ],
         ];
@@ -50,3 +48,4 @@ class StoreCarImageRequest extends FormRequest
         ];
     }
 }
+

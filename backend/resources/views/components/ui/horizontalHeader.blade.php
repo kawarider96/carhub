@@ -43,9 +43,9 @@
 
                 {{-- DASHBOARD --}}
                 <a href="{{ route('dashboard.index') }}"
-                   class="group relative px-2 py-1 {{ request()->routeIs('dashboard') ? 'text-accent font-semibold' : 'text-gray-300 hover:text-accent' }}">
+                   class="group relative px-2 py-1 {{ request()->routeIs('dashboard.index') ? 'text-accent font-semibold' : 'text-gray-300 hover:text-accent' }}">
                     <span class="absolute left-0 top-0 h-full w-1 bg-accent
-                        {{ request()->routeIs('dashboard') ? '' : 'scale-y-0 group-hover:scale-y-100 transition-transform origin-top'}}"></span>
+                        {{ request()->routeIs('dashboard.index') ? '' : 'scale-y-0 group-hover:scale-y-100 transition-transform origin-top'}}"></span>
                     Dashboard
                 </a>
 

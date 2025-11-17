@@ -4,7 +4,7 @@
 
 @section('page')
 
-<main class="ml-64 p-10 space-y-10">
+<main class="p-10 space-y-10">
 
     <!-- WELCOME -->
     <h1 class="text-3xl font-bold tracking-wide">

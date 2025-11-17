@@ -12,6 +12,7 @@ use App\Services\CarModelService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 /**
  * Class FavoriteCarController
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\Auth;
  */
 class FavoriteCarController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         protected FavoriteCarService $favorites,
         protected CarBrandService $brands,
@@ -42,7 +45,10 @@ class FavoriteCarController extends Controller
 
         foreach ($favoriteCars as $car) {
             $carImages[$car->id] = $car->images->map(
-                fn($img) => route('favorite.image.show', $img->id)
+                fn($img) => route('favorites.images.show', [
+                    'favoriteCar' => $car->id,
+                    'image'       => $img->id,
+                ])
             )->toArray();
         }
 
@@ -59,9 +65,20 @@ class FavoriteCarController extends Controller
      */
     public function create(): View
     {
+        $brands = $this->brands->all();
+        $models = $this->models->all();
+
+        $modelsByBrand = $models
+            ->groupBy('car_brand_id')
+            ->map(fn($items) => $items->map(fn($m) => [
+                'id' => $m->id,
+                'name' => $m->name,
+            ])->values())
+            ->toArray();
+
         return view('pages.user.favorites.create', [
-            'brands' => $this->brands->all(),
-            'models' => $this->models->all(),
+            'brands'        => $brands,
+            'modelsByBrand' => $modelsByBrand,
         ]);
     }
 
@@ -73,7 +90,10 @@ class FavoriteCarController extends Controller
      */
     public function store(StoreFavoriteCarRequest $request): RedirectResponse
     {
-        $this->favorites->create($request->validated());
+        $data = $request->validated();
+        $data['user_id'] = Auth::id();
+
+        $this->favorites->create($data);
 
         return redirect()
             ->route('favorites.index')
@@ -107,10 +127,22 @@ class FavoriteCarController extends Controller
     {
         $this->authorize('update', $favoriteCar);
 
+        $brands = $this->brands->all();
+        $models = $this->models->all();
+
+        $modelsByBrand = $models
+            ->groupBy('car_brand_id')
+            ->map(fn($items) => $items->map(fn($m) => [
+                'id' => $m->id,
+                'name' => $m->name,
+            ])->values())
+            ->toArray();
+
         return view('pages.user.favorites.edit', [
-            'favoriteCar' => $favoriteCar,
-            'brands'      => $this->brands->all(),
-            'models'      => $this->models->all(),
+            'favoriteCar'   => $favoriteCar,
+            'brands'        => $brands,
+            'modelsByBrand' => $modelsByBrand,
+            'images'        => $favoriteCar->images,
         ]);
     }
 
