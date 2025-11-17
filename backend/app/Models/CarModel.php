@@ -55,7 +55,7 @@ class CarModel extends Model
     /**
      * A típushoz tartozó márka.
      *
-     * @return BelongsTo<CarBrand, self>
+     * @return BelongsTo<CarBrand, CarModel>
      */
     public function brand(): BelongsTo
     {
@@ -65,7 +65,7 @@ class CarModel extends Model
     /**
      * Kedvenc autók, ahol ezt a típust választották.
      *
-     * @return HasMany<FavoriteCar>
+     * @return HasMany<FavoriteCar, CarModel>
      */
     public function favoriteCars(): HasMany
     {

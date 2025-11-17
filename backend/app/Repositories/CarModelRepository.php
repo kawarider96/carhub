@@ -3,14 +3,21 @@
 namespace App\Repositories;
 
 use App\Models\CarModel;
+use Illuminate\Support\Collection;
 
+/**
+ * @extends BaseRepository<CarModel>
+ */
 class CarModelRepository extends BaseRepository
 {
     public function __construct(CarModel $model)
     {
         parent::__construct($model);
     }
-
+    
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, CarModel>
+     */
     public function getByBrand(int $brandId)
     {
         return $this->model
@@ -19,11 +26,14 @@ class CarModelRepository extends BaseRepository
             ->get();
     }
 
-    public function existsForBrand(int $brandId, string $name): bool
+    /**
+     * Márkával együtt betöltve (index / lista nézethez).
+     * @return \Illuminate\Database\Eloquent\Collection<int, CarModel>
+     */
+    public function allWithBrand(): Collection
     {
-        return $this->model
-            ->where('car_brand_id', $brandId)
-            ->where('name', $name)
-            ->exists();
+        return CarModel::with('brand')
+            ->orderBy('name')
+            ->get();
     }
 }

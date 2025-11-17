@@ -33,6 +33,7 @@ class CarBrand extends Model
 {
     use HasFactory;
 
+    protected $table = 'car_brands';
     protected $fillable = ['name'];
 
     protected $casts = [
@@ -49,7 +50,7 @@ class CarBrand extends Model
     /**
      * A márkához tartozó autótípusok (1:N).
      *
-     * @return HasMany<CarModel>
+     * @return HasMany<CarModel, CarBrand>
      */
     public function models(): HasMany
     {

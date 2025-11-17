@@ -63,7 +63,7 @@ class FavoriteCar extends Model
     /**
      * A felhasználó, akihez ez a kedvenc autó tartozik.
      *
-     * @return BelongsTo<User, self>
+     * @return BelongsTo<User, FavoriteCar>
      */
     public function user(): BelongsTo
     {
@@ -73,7 +73,7 @@ class FavoriteCar extends Model
     /**
      * Az autó típusa.
      *
-     * @return BelongsTo<CarModel, self>
+     * @return BelongsTo<CarModel, FavoriteCar>
      */
     public function carModel(): BelongsTo
     {
@@ -83,7 +83,7 @@ class FavoriteCar extends Model
     /**
      * A kedvenc autóhoz feltöltött képek (1:N).
      *
-     * @return HasMany<CarImage>
+     * @return HasMany<CarImage, FavoriteCar>
      */
     public function images(): HasMany
     {
