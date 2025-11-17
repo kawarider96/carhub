@@ -33,24 +33,31 @@ class AuthController extends Controller
             $request->password
         );
 
-        if ($result['status'] === true) {
-
-            // Session megújítás biztonság miatt
-            session()->regenerate();
-
-            auth()->login($result['user']);
-
-            return redirect()
-                ->route('dashboard.index')
-                ->with('success', 'Sikeres bejelentkezés.');
+        // Login sikertelen
+        if (!$result['status']) {
+            return back()->withErrors([
+                'username' => $result['error'] === 'locked'
+                    ? 'A fiók zárolva lett 5 hibás próbálkozás miatt.'
+                    : 'Hibás felhasználónév vagy jelszó.',
+            ]);
         }
 
-        // Hiba esetek: invalid, locked, stb.
-        return back()->withErrors([
-            'username' => $result['error'] === 'locked'
-                ? 'A fiók zárolva lett 5 hibás próbálkozás miatt.'
-                : 'Hibás felhasználónév vagy jelszó.',
-        ]);
+        $user = $result['user'];
+
+        session()->regenerate();
+        auth()->login($user);
+
+        // Ha admin → admin dashboard
+        if ($user->role === 'admin') {
+            return redirect()
+                ->route('admin.dashboard.index')
+                ->with('success', 'Sikeres admin bejelentkezés.');
+        }
+
+        // Ha nem admin → user dashboard
+        return redirect()
+            ->route('dashboard.index')
+            ->with('success', 'Sikeres bejelentkezés.');
     }
 
     /* -------------------------------------------------------------
@@ -108,7 +115,7 @@ class AuthController extends Controller
         auth()->login($result['user']);
 
         return redirect()
-            ->route('home')
+            ->route('admin.dashboard.index')
             ->with('success', 'Admin bejelentkezés sikeres.');
     }
 

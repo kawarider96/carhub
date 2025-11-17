@@ -9,38 +9,38 @@
     <!-- NAVIGATION -->
     <nav class="space-y-2 text-sm">
 
-        {{-- Dashboard --}}
-        <a href="{{ route('dashboard.index') }}"
-           class="group flex items-center px-3 py-2 rounded-lg relative
-                {{ request()->routeIs('dashboard.index') 
-                    ? 'bg-white/5 text-accent font-semibold'
-                    : 'text-gray-400 hover:text-accent transition' }}">
-            @if (request()->routeIs('dashboard.index'))
-                <span class="absolute left-0 top-0 h-full w-1 bg-accent"></span>
-            @else
-                <span class="absolute left-0 top-0 h-full w-1 bg-accent
-                    scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></span>
-            @endif
-            Dashboard
-        </a>
-
-        {{-- Profil --}}
-        <a href="{{ route('profile.show') }}"
-           class="group flex items-center px-3 py-2 rounded-lg relative
-                {{ request()->routeIs('profile.*') 
-                    ? 'bg-white/5 text-accent font-semibold'
-                    : 'text-gray-400 hover:text-accent transition' }}">
-            @if (request()->routeIs('profile.*'))
-                <span class="absolute left-0 top-0 h-full w-1 bg-accent"></span>
-            @else
-                <span class="absolute left-0 top-0 h-full w-1 bg-accent
-                    scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></span>
-            @endif
-            Profil
-        </a>
-
-        {{-- Kedvenc autók – csak user --}}
         @if(auth()->user()->role === 'user')
+            {{-- USER: Dashboard --}}
+            <a href="{{ route('dashboard.index') }}"
+               class="group flex items-center px-3 py-2 rounded-lg relative
+                    {{ request()->routeIs('dashboard.index') 
+                        ? 'bg-white/5 text-accent font-semibold'
+                        : 'text-gray-400 hover:text-accent transition' }}">
+                @if (request()->routeIs('dashboard.index'))
+                    <span class="absolute left-0 top-0 h-full w-1 bg-accent"></span>
+                @else
+                    <span class="absolute left-0 top-0 h-full w-1 bg-accent
+                        scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></span>
+                @endif
+                Vezérlőpult
+            </a>
+
+            {{-- USER: Profil --}}
+            <a href="{{ route('profile.show') }}"
+               class="group flex items-center px-3 py-2 rounded-lg relative
+                    {{ request()->routeIs('profile.*') 
+                        ? 'bg-white/5 text-accent font-semibold'
+                        : 'text-gray-400 hover:text-accent transition' }}">
+                @if (request()->routeIs('profile.*'))
+                    <span class="absolute left-0 top-0 h-full w-1 bg-accent"></span>
+                @else
+                    <span class="absolute left-0 top-0 h-full w-1 bg-accent
+                        scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></span>
+                @endif
+                Profil
+            </a>
+
+            {{-- USER: Kedvenc autók --}}
             <a href="{{ route('favorites.index') }}"
                class="group flex items-center px-3 py-2 rounded-lg relative
                     {{ request()->routeIs('favorites.*') 
@@ -54,25 +54,37 @@
                 @endif
                 Kedvenc autók
             </a>
-        @endif
 
-        {{-- Admin menu --}}
-        @if(auth()->user()->role === 'admin')
+        @elseif(auth()->user()->role === 'admin')
 
-            <a href="#"
+            {{-- ADMIN: Dashboard --}}
+            <a href="{{ route('admin.dashboard.index') }}"
                class="group flex items-center px-3 py-2 rounded-lg relative
-                      text-gray-400 hover:text-accent transition">
-                <span class="absolute left-0 top-0 h-full w-1 bg-accent
-                            scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></span>
-                Felhasználók
+                    {{ request()->routeIs('admin.dashboard.index') 
+                        ? 'bg-white/5 text-accent font-semibold'
+                        : 'text-gray-400 hover:text-accent transition' }}">
+                @if (request()->routeIs('admin.dashboard.index'))
+                    <span class="absolute left-0 top-0 h-full w-1 bg-accent"></span>
+                @else
+                    <span class="absolute left-0 top-0 h-full w-1 bg-accent
+                        scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></span>
+                @endif
+                Admin Vezérlőpult
             </a>
 
-            <a href="#"
+            {{-- ADMIN: Kérelmek --}}
+            <a href="{{ route('admin.requests.index') }}"
                class="group flex items-center px-3 py-2 rounded-lg relative
-                      text-gray-400 hover:text-accent transition">
-                <span class="absolute left-0 top-0 h-full w-1 bg-accent
-                            scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></span>
-                Autók
+                    {{ request()->routeIs('admin.requests.*') 
+                        ? 'bg-white/5 text-accent font-semibold'
+                        : 'text-gray-400 hover:text-accent transition' }}">
+                @if (request()->routeIs('admin.requests.*'))
+                    <span class="absolute left-0 top-0 h-full w-1 bg-accent"></span>
+                @else
+                    <span class="absolute left-0 top-0 h-full w-1 bg-accent
+                        scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></span>
+                @endif
+                Kérelmek
             </a>
 
         @endif
