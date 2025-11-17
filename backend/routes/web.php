@@ -57,6 +57,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     // User által új autómodell rögzítése egy márkához
     Route::post('/brands/{brand}/models', [CarModelController::class, 'store'])
         ->name('brands.models.store');
+
+    // User modell létrehozó oldal
+    Route::get('/models/create', [CarModelController::class, 'create'])
+        ->name('models.create');
 });
 
 /*

@@ -61,6 +61,17 @@
 
 
 
+    <!-- Info: Új modell létrehozása -->
+    <div class="bg-white/5 border border-border rounded-lg p-4">
+        <p class="text-sm text-gray-300 mb-3">
+            Nem találod a megfelelő modellt a felvenni kívánt autóhoz? Hozz létre újat!
+        </p>
+        <a href="{{ route('models.create') }}"
+           class="inline-block px-4 py-2 bg-accent text-black rounded-md font-semibold hover:bg-green-400 transition">
+            Új modell létrehozása
+        </a>
+    </div>
+
     <!-- ========================= -->
     <!-- FORM #1 – FavoriteCar UPDATE -->
     <!-- ========================= -->
