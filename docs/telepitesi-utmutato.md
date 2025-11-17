@@ -18,8 +18,9 @@
 5. Indítsd el a konténereket:
    docker-compose up --build (a carhub könyvtárból kell kiadni a parancsot)
 
-6. Ha a docker compose up már lefutott és sikeresen fut akkor a carhub könyvtárból lépj be a docker konténerbe és generáld le az app key-t
-   docker exec -it sh
+6. Ha a docker compose up már lefutott és sikeresen fut akkor a carhub könyvtárból lépj be a docker konténerbe és generáld le az app key-t:
+
+   docker exec -it carhub_app sh
 
    majd
 
