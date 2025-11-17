@@ -43,13 +43,6 @@ class CarImageController extends Controller
      */
     public function show(FavoriteCar $favoriteCar, CarImage $image)
     {
-         \Log::info('📸 CarImageController@show CALLED', [
-        'favoriteCar_id' => $favoriteCar->id,
-        'carImage_id'    => $image->id,
-        'carImage_fc_id' => $image->favorite_car_id,
-        'mime'           => $image->mime,
-        'content_len'    => strlen($image->content ?? ''),
-    ]);
         $this->authorize('view', $favoriteCar);
 
         return response(

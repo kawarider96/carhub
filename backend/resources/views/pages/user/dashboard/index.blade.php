@@ -49,11 +49,8 @@
 
     <!-- QUICK ACTIONS -->
     <div class="flex flex-wrap gap-4">
-        <a class="bg-accent text-black px-6 py-3 rounded-xl font-semibold hover:bg-green-400 transition">
+        <a href="{{ route('favorites.create') }}" class="bg-accent text-black px-6 py-3 rounded-xl font-semibold hover:bg-green-400 transition">
             + Új kedvenc autó
-        </a>
-        <a class="bg-panel border border-border px-6 py-3 rounded-xl hover:border-accent transition">
-            Autók böngészése
         </a>
         <a class="bg-panel border border-border px-6 py-3 rounded-xl hover:border-accent transition">
             Hiányzó márka bejelentése
