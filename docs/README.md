@@ -16,14 +16,33 @@ A CarHub egy belső használatra szánt járműnyilvántartó rendszer, amely le
 
 ##  Telepítés
 
-1. Klónozd a repót:
+11. Töltsd le és telepítsd a legfrissebb Docker alkalmazást:
+   https://www.docker.com/products/docker-desktop
+
+2. Klónozd a projektet:
    git clone https://github.com/kawarider96/carhub.git
    cd carhub
 
-Állítsd be a .env fájlt:
+3. hozz létre a backend mappában és a fő könyvtárban is egy .env fájlt és másold bele mindkét mappában megtalálható a .env.example fájl tartalmát
 
-cp .env.example .env
-php artisan key:generate
+4. Lépj be a backend mappába és futtasd a következő parancsot
+   composer install
+   (ha nincs composer a host gépen akkor telepiteni kell: https://getcomposer.org/download/)
+
+5. Indítsd el a konténereket:
+   docker-compose up -d (a carhub könyvtárból kell kiadni a parancsot)
+
+6. a carhub könyvtárból lépj be a docker konténerbe és generáld le az app key-t
+   docker exec -it sh
+
+   majd
+
+   php artisan key:generate
+
+7. Az alkalmazás elérhető:
+   http://localhost:8000
+
+(figyelj a port ütközésekre)
 
 
 Bejelentkezéshez alapértelmezett admin user
