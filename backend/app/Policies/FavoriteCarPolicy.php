@@ -30,4 +30,12 @@ class FavoriteCarPolicy
     {
         return $favoriteCar->user_id === $user->id;
     }
+
+    /**
+     * Csak a saját kedvenc autódhoz tölthetsz fel képet.
+     */
+    public function create(User $user, FavoriteCar $favoriteCar): bool
+    {
+        return $favoriteCar->user_id === $user->id;
+    }
 }

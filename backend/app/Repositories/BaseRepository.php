@@ -4,17 +4,26 @@ namespace App\Repositories;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @template TModel of \Illuminate\Database\Eloquent\Model
+ */
 abstract class BaseRepository
 {
+    /**
+     * @var TModel
+     */
     protected Model $model;
 
+    /**
+     * @param TModel $model
+     */
     public function __construct(Model $model)
     {
         $this->model = $model;
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, Model>
+     * @return Collection<int, TModel>
      */
     public function all()
     {
@@ -22,7 +31,7 @@ abstract class BaseRepository
     }
 
     /**
-     * @return Model
+     * @return TModel
      */
     public function find(int $id)
     {
@@ -31,7 +40,7 @@ abstract class BaseRepository
 
     /**
      * @param array<string, mixed> $data
-     * @return Model
+     * @return TModel
      */
     public function create(array $data)
     {
@@ -39,9 +48,8 @@ abstract class BaseRepository
     }
 
     /**
-     * @param int $id
      * @param array<string, mixed> $data
-     * @return Model
+     * @return TModel
      */
     public function update(int $id, array $data)
     {

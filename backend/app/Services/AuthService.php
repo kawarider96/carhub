@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class AuthService
 {

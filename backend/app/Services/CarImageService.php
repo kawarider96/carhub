@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Repositories\CarImageRepository;
 use Illuminate\Http\UploadedFile;
+use App\Models\CarImage;
+use Illuminate\Support\Collection;
 
 class CarImageService
 {

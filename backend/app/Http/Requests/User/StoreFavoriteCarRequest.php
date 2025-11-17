@@ -20,7 +20,6 @@ class StoreFavoriteCarRequest extends FormRequest
             'year'         => ['nullable', 'integer', "between:1886,{$maxYear}"],
             'color'        => ['nullable', 'string', 'max:40'],
             'fuel'         => ['nullable', 'string', 'max:40'],
-            // Ha admin hozza létre más usernek: 'user_id' => ['sometimes','integer','exists:users,id']
         ];
     }
 

@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Repositories\UserRequestRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\CarBrandRepository;
+use App\Models\UserRequest;
+use Illuminate\Support\Collection;
 
 class UserRequestService
 {
