@@ -88,33 +88,47 @@ class UserServiceTest extends TestCase
     #[Test]
     public function test_lock_delegates_to_repository(): void
     {
+        $user = User::factory()->make([
+            'id' => 7,
+            'is_active' => false,
+        ]);
+
         $repo = Mockery::mock(UserRepository::class);
         $repo->shouldReceive('lockUser')
             ->once()
             ->with(7)
-            ->andReturn(['id' => 7, 'is_active' => false]);
+            ->andReturn($user);
 
         $service = new UserService($repo);
 
         $res = $service->lock(7);
 
-        $this->assertEquals(['id' => 7, 'is_active' => false], $res);
+        $this->assertInstanceOf(User::class, $res);
+        $this->assertEquals(7, $res->id);
+        $this->assertFalse($res->is_active);
     }
 
     #[Test]
     public function test_unlock_delegates_to_repository(): void
     {
+        $user = User::factory()->make([
+            'id' => 8,
+            'is_active' => true,
+        ]);
+
         $repo = Mockery::mock(UserRepository::class);
         $repo->shouldReceive('unlockUser')
             ->once()
             ->with(8)
-            ->andReturn(['id' => 8, 'is_active' => true]);
+            ->andReturn($user);
 
         $service = new UserService($repo);
 
         $res = $service->unlock(8);
 
-        $this->assertEquals(['id' => 8, 'is_active' => true], $res);
+        $this->assertInstanceOf(User::class, $res);
+        $this->assertEquals(8, $res->id);
+        $this->assertTrue($res->is_active);
     }
 
     // ───────────────────────────────────────────────
