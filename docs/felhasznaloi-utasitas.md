@@ -7,7 +7,7 @@ Regisztrációhoz meg kell adni egy felhasználónevet, teljes nevet és jelszó
 
 A jelszó minimum 8 karakteres, tartalmaznia kell kis- és nagybetűt, számot és speciális karaktert.
 
-Csak aktív fékhasználók tudnak belépni.
+Csak aktív felhasználók tudnak belépni.
 
 Kedvenc autók kezelése
 

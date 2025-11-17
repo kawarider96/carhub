@@ -1,150 +1,113 @@
-<!DOCTYPE html>
-<html lang="hu">
-<head>
-    <meta charset="UTF-8">
-    <title>Kedvenc autó – Megtekintés</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+Bármilyen programozási nyelven (PHP, C# előnyben. adatbázisok: mysql, mssql, sqlite, postgres)
 
-    <style>
-        .fade {
-            transition: opacity 0.3s ease;
-        }
-    </style>
-</head>
+Készítsen webalkalmazást vagy asztali alkalmazást a következő funkciókkal:
 
-<body class="min-h-screen bg-slate-950 text-slate-100 p-10">
+    - kezdőlap (kb 5 mondatban leírás mit valósít meg az alkalmazás, egy témába illő kép) ami bemutatja az alkalmazást (1 pont)
+    - bejelentkezési lehetőség (külön az adminnak és külön a sima usernek. a kezdőlapról legyen redirect, gomb stb lehetőség a bejelentkezésre)  (2 pont)
+    - admin felület az alkalmazás felhasználóinak listázására, új felhasználó felvételére, szerkesztésére, törlésére (továbbiakban CRUD) (8 pont)
+    - a felhasználók törlése csak akkor valósulhat meg, ha azt egy felhasználó elindította. ő saját maga nem tudja törölni a fiókot. (5 pont)
+a felhasználó igény indítását követően az adminnak van lehetősége törölni a felhasználót. (5 pont)
+    - a felhasználók nyilván tudják tartani a kedvenc autóikat (CRUD) (8 pont)
+    - az admin felhasználók tudnak felvenni autó márkákat egy másik adatmodellben, amit a felhasználók ki tudnak választani maguknak (5 pont)
+    - ha valamilyen autó márka nincs, akkor valamilyen módszerrel képes értesíteni az admin-t, hogy az vegyen fel új márkát (5 pont)
+(a törlés és ez a funkció lehet ugyanazon a logikán alapulva)
 
-<div class="max-w-4xl mx-auto space-y-12">
+Bejelentkezés
+    - felhasználónév és jelszó megadásával, csak az aktív felhasználók tudnak bejelentkezni (3 pont)
+    - 5 elrontott jelszó után zárolja az accountot a rendszer, azt csak az admin tudja feloldalni (4 pont)
+    - kijelentkezési lehetőség (2 pont)
+    - a felhasználóknak legyen regisztrációs lehetősége, a regisztráció során tudjon megadni nevet, felhasználónevet és jelszót. (4 pont)
+    - a jelszó megadáshoz a már megszokott validációs eljárásokat elvárjuk (jelszó kétszer, megfelelő bonyolultság és hosszúság.
+minimum 8 karakter és kis nagy betű szám spec karakter) (4 pont)
 
-    <!-- TITLE -->
-    <h1 class="text-3xl font-bold tracking-wide text-center">
-        Kedvenc autó <span class="text-emerald-400">megtekintése</span>
-    </h1>
+Admin felület
+    - csak az "admin" típusú felhasználó érheti el (2 pont)
+ -   - a kezdeti admin felhasználót az adatbázisban hozza létre kézzel vagy valamilyen script segítségével,
+amit a webserveren vagy programból csak úgy nem lehet elérni. ergo ez legyen egy adminisztrátori lépés, vagy legelső indulásnál a szoftver tegye meg a megfelelő admin bejelentkezés
+létrehozást, vagyis minimum legyen egy admin felhasználó. (4 pont / előre beégetve az adatbázisba esetén 1 pont max)
+    - listázza ki a felhasználókat (lásd feljebb 8 pontban beleszámít)
+    - a felhasználók állapotát, zárolását stb. (lásd feljebb 8 pontban beleszámít)
+    - legyen egy rész, ahol a felhasználói kérések vannak nyilvántartva. törlési lehetőség zárolások visszaoldása a korábban már leírt folyamat szerint,
+vagyis mindegyiket előzze meg egy felhasználói akció. (lásd feljebb 5 pontban beleszámít)
+    - új felhasználó rögzítésének lehetősége admin oldalról is legyen meg. a felhasználókat az admin képes legyen admin típusra beállítani.
+(ha az admin is képes felhasználót feltölteni akkor további plusz 2 pont)
 
-    <!-- ========================= -->
-    <!-- CAROUSEL -->
-    <!-- ========================= -->
-    <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-6 shadow-xl">
+Autó nyilvántartási rész.
+    - a felhasználók tudjanak egy lenyíló vezérlőből kiválasztani autó márkát. (lásd feljebb 8 pontban beleszámít)
+    - az autó márkához a felhasználó tudjon típust rögzíteni. a már rögzített típus a későbbi feltöltések esetén jelenjen meg. vagyis szótár tábla szerűen legyen rögzítve.
+adatbázisban legyenek meg a megfelelő kapcsolódások a táblák között. (lásd feljebb 8 pontban beleszámít)
+    - az autó típus mellé tudjon rögzíteni egy évjáratot (int), egy színt (text), egy üzemanyag típust (text) ezek nem kell,
+hogy szótár tábla szerűen legyenek tárolva. (lásd feljebb 8 pontban beleszámít)
+    - további opcióként minden felhasználó minden autóhoz tudjon rögzíteni képeket (bármennyi, varbinary típus).
+értelemszerűen figyelni kell az adatbázis kapcsolatra. egy autóhoz-sok kép. (lásd feljebb 8 pontban beleszámít, illetve lejjebb az adattáblák pontjainál)
 
-        <div class="relative w-full aspect-[4/3] overflow-hidden rounded-lg border border-slate-700 mb-4" data-carousel-id="1">
+Felhasználók adatai: (1 pont)
+- felhasználónév
+- jelszó
+- felhasználó típus (admin, user)
+- teljes név
+- aktív-e a felhasználói fiók
 
-            <!-- JS-ben felülírjuk majd -->
-            <img id="mainImage1"
-                 class="w-full h-full object-cover transition-opacity duration-300 fade opacity-100"
-                 src="https://via.placeholder.com/800x600?text=Nincs+kép">
+Autó márka szótár: (1 pont)
+- azonosító
+- megnevezés
 
-            <!-- ARROWS -->
-            <button onclick="prevImage(1)"
-                    class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-2 rounded-full">
-                ‹
-            </button>
+Autó típus szótár: (1 pont)
+-azonosító
+- autó_márka_azonosító
+- megnevezés
 
-            <button onclick="nextImage(1)"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-2 rounded-full">
-                ›
-            </button>
+Kedvenc autók tábla: (1 pont)
+- azonosító
+- autó_tipus_azonositó
+- felhasználó_azonositó
+- évjárat
+- szín
+- üzemanyag
 
-            <!-- THUMBNAILS -->
-            <div id="thumbs1" class="absolute bottom-2 right-2 flex gap-2 bg-black/50 p-2 rounded-lg"></div>
+Autó képek tábla: (1 pont)
+- azonosító
+- kedvenc_autó_azonositó
+- kep_tartalom
+Megfelelő primary key, auto increment, foreign key (5 pont)
 
-        </div>
-    </div>
+Biztonsági követelmények (fontossági sorrendben):
+- az alkalmazás minden oldala csak bejelentkezés után érhető el
+    ez alól kivétel a kezdő oldal és bejelentkezési oldalak (ha a login külön oldalon van megoldva és nem modal szerűen) (4 pont)
+- felhasználói nevek és jelszavak hashelve legyenek tárolva (értelem szerűen a bejelentkezést követően a felhasználó teljes neve jelenjen meg mindenhol) (5 pont)
+- sql injection elleni védelem (2 pont)
+- minden beviteli mező, form stb esetén megfelelő validáció legyen a vezérlőkön, amelyek tükrözzék, hogy az adat táblák oszlopainak típusát vagy hosszát (text esetén)
+a validációnál nem elég kliens oldali validáció, elvárjuk a szerver oldali, vagy code-behind validációt is. (4 pont)
+- formok esetén csrf elleni védelem (2 pont)
 
-    <!-- ========================= -->
-    <!-- DETAILS -->
-    <!-- ========================= -->
+A feladat során a következő irányelveket tartsa szem előtt
 
-    <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-6 shadow-xl space-y-4">
-        <h2 class="text-xl font-semibold">Autó adatai</h2>
+- separation of concerns (2 pont)
+- megfelelő szintű programozási módszertanok / eljárások alkalmazása, amit a feladat indokol (és az idő enged) (opcionális 2 pont)
+- lehetőség szerint a HTTP protokoll adta lehetőségek kihasználása (weboldal létrehozása esetén) (2 pont)
+- átlátható, olvasható kódolás, kommentelés mindenhol. adatbázisban nem szükséges. (3 pont)
+- adatbázis táblákról egy database diagram szerű ábrát kérünk. (1 pont)
+- hatékonyság, egyszerű, újra felhasználható kód. (2 pont)
+- következetes (tetszőleges) névadási stratégia. az adattábláknál, függvényeknél, osztályoknál értelemszerűen valamilyen rendszer (case notation) elnevezés szabadon választott.
+(1 pont)
 
-        <div class="grid grid-cols-2 gap-4">
-            <div class="p-4 bg-slate-800 rounded-lg border border-slate-700">
-                <div class="text-sm opacity-60">Márka</div>
-                <div class="text-lg font-semibold" id="brandName">Toyota</div>
-            </div>
+Egyéb
 
-            <div class="p-4 bg-slate-800 rounded-lg border border-slate-700">
-                <div class="text-sm opacity-60">Típus</div>
-                <div class="text-lg font-semibold" id="modelName">Supra</div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-4">
-            <div class="p-4 bg-slate-800 rounded-lg border border-slate-700">
-                <div class="text-sm opacity-60">Évjárat</div>
-                <div class="text-lg font-semibold" id="year">1999</div>
-            </div>
-
-            <div class="p-4 bg-slate-800 rounded-lg border border-slate-700">
-                <div class="text-sm opacity-60">Szín</div>
-                <div class="text-lg font-semibold" id="color">Piros</div>
-            </div>
-
-            <div class="p-4 bg-slate-800 rounded-lg border border-slate-700">
-                <div class="text-sm opacity-60">Üzemanyag</div>
-                <div class="text-lg font-semibold" id="fuel">Benzin</div>
-            </div>
-        </div>
-
-    </div>
-
-</div>
+- tetszőleges framework használata elfogadott, amíg hasonló végeredményt önállóan is el tudna készíteni (opcionális 5 pont)
+- közös layout / masterpage használata (header, fő navigációs menü, footer weboldal esetén. desktop esetén usercontrollok) (opcionális 5 pont)
+- HTML szemantikus elemeinek használata   (opcionális 2 pont)
+- reszponzivitás növelése (javascript alkalamazása), design (igényesebb css) inkább a funkcionalitás (opcionális 2 pont)
+    implementálása után
+- célszerűen bootstrap használata, ha nincs nagy gyakorlat a html, javascript, css terén. (opcionális 2 pont)
 
 
-<!-- ============================================== -->
-<!-- CAROUSEL SCRIPT -->
-<!-- ============================================== -->
+A cél, hogy a szerver oldali kódok, adatbázis felépítése és a kliens oldalról való adatok olvasásása megfelelően történjen.
+Elvárunk egy megfelelő  dokumentáltságot. Felhasználói utasítás. Admin utasítás. Telepítési utasítás.
+Ezek hiányában a következő pont levonásokra lehet számítani: minusz 4-4-4 pont.
 
-<script>
-    // Demo kép URL-ek (ide kerülnek majd a valódi show route-ok)
-    const images = [
-        "https://picsum.photos/id/237/800/600",
-        "https://picsum.photos/id/1015/800/600",
-        "https://picsum.photos/id/1025/800/600"
-    ];
+Összesen alap pontokkal: 100 pontot lehet elérni.
+Lehet szerezni opcionálisan: plusz 20 pontot.
+Lehet szerezni büntető pontokat: mínusz 12 pontot.
 
-    let currentIndex = 0;
-
-    function renderCarousel() {
-        const main = document.getElementById("mainImage1");
-        const thumbs = document.getElementById("thumbs1");
-
-        // Main image
-        main.style.opacity = 0;
-        setTimeout(() => {
-            main.src = images[currentIndex];
-            main.style.opacity = 1;
-        }, 150);
-
-        // Thumbnails
-        thumbs.innerHTML = "";
-        images.forEach((url, idx) => {
-            const t = document.createElement("img");
-            t.src = url;
-            t.className =
-                "w-12 h-12 rounded-md cursor-pointer opacity-70 hover:opacity-100 border border-slate-700";
-
-            t.onclick = () => {
-                currentIndex = idx;
-                renderCarousel();
-            };
-
-            thumbs.appendChild(t);
-        });
-    }
-
-    renderCarousel();
-
-    function nextImage() {
-        currentIndex = (currentIndex + 1) % images.length;
-        renderCarousel();
-    }
-
-    function prevImage() {
-        currentIndex = (currentIndex - 1 + images.length) % images.length;
-        renderCarousel();
-    }
-</script>
-
-</body>
-</html>
+Az eredmény tekintetében 100 pontot vesszük alapul és 75 ponttól számít megfelelőnek a teszt.
+ 

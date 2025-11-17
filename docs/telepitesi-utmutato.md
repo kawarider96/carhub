@@ -9,11 +9,26 @@
    git clone https://github.com/kawarider96/carhub.git
    cd carhub
 
-3. Indítsd el a konténereket:
-   docker-compose up -d
+3. hozz létre a backend mappában és a fő könyvtárban is egy .env fájlt és másold bele mindkét mappában megtalálható a .env.example fájl tartalmát
 
-4. Az alkalmazás elérhető:
+4. Lépj be a backend mappába és futtasd a következő parancsot
+   composer install
+   (ha nincs composer a host gépen akkor telepiteni kell: https://getcomposer.org/download/)
+
+5. Indítsd el a konténereket:
+   docker-compose up -d (a carhub könyvtárból kell kiadni a parancsot)
+
+6. a carhub könyvtárból lépj be a docker konténerbe és generáld le az app key-t
+   docker exec -it sh
+
+   majd
+
+   php artisan key:generate
+
+7. Az alkalmazás elérhető:
    http://localhost:8000
+
+(figyelj a port ütközésekre)
 
 ## Fontos tudnivalók
 
