@@ -16,9 +16,9 @@
    (ha nincs composer a host gépen akkor telepiteni kell: https://getcomposer.org/download/)
 
 5. Indítsd el a konténereket:
-   docker-compose up -d (a carhub könyvtárból kell kiadni a parancsot)
+   docker-compose up --build (a carhub könyvtárból kell kiadni a parancsot)
 
-6. a carhub könyvtárból lépj be a docker konténerbe és generáld le az app key-t
+6. Ha a docker compose up már lefutott és sikeresen fut akkor a carhub könyvtárból lépj be a docker konténerbe és generáld le az app key-t
    docker exec -it sh
 
    majd
