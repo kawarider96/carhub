@@ -8,16 +8,31 @@ use App\Services\UserRequestService;
 use App\Http\Requests\UserRequest\StoreUserRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class UserRequestController extends Controller
+class UserRequestController extends Controller implements HasMiddleware
 {
     public function __construct(
         protected UserRequestService $requests
     ) {}
 
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('admin', only: [
+                'index',
+                'approve',
+                'reject',
+            ]),
+        ];
+    }
+
     public function index(): View
     {
-        $items = $this->requests->all();
+        $items = \App\Models\UserRequest::with(['user', 'handler'])
+            ->orderByDesc('created_at')
+            ->paginate(10);
         return view('pages.admin.requests.index', [ 'requests' => $items ]);
     }
 

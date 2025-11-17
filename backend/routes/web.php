@@ -8,6 +8,8 @@ use App\Http\Controllers\Web\User\CarImageController;
 use App\Http\Controllers\Web\User\CarModelController;
 use App\Http\Controllers\Web\Admin\UserRequestController as WebUserRequestController;
 use App\Http\Controllers\Web\Admin\UserController as WebUserController;
+use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Web\Admin\CarBrandController as AdminCarBrandController;
 use App\Http\Controllers\Web\HomeController;
 
 /*
@@ -77,10 +79,21 @@ Route::middleware(['auth', 'active'])->group(function () {
 });
 
 // Admin – UserRequests kezelése
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'active'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/requests', [WebUserRequestController::class, 'index'])->name('requests.index');
     Route::post('/requests/{userRequest}/approve', [WebUserRequestController::class, 'approve'])->name('requests.approve');
     Route::post('/requests/{userRequest}/reject', [WebUserRequestController::class, 'reject'])->name('requests.reject');
+
+    // Admin – márkák
+    Route::get('/brands/create', [AdminCarBrandController::class, 'create'])->name('brands.create');
+    Route::post('/brands', [AdminCarBrandController::class, 'store'])->name('brands.store');
+
+    // Admin – felhasználók
+    Route::get('/users/create', [WebUserController::class, 'adminCreateForm'])->name('users.create');
+    Route::post('/users', [WebUserController::class, 'adminStore'])->name('users.store');
+    Route::get('/users/{user}/edit', [WebUserController::class, 'adminEditForm'])->name('users.edit');
+    Route::patch('/users/{user}', [WebUserController::class, 'adminUpdate'])->name('users.update');
 });
 
 /*
