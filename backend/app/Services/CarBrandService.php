@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Repositories\CarBrandRepository;
+use App\Models\CarBrand;
+use Illuminate\Support\Collection;
 
 class CarBrandService
 {

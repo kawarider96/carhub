@@ -4,7 +4,8 @@ namespace App\Services;
 
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Hash;
-
+use App\Models\User;
+use Illuminate\Support\Collection;
 
 class UserService
 {
@@ -141,5 +142,23 @@ class UserService
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $user;
+    }
+
+    /**
+     * Admin oldali létrehozás: a megadott szerepkörrel.
+     *
+     * @param array<string, mixed> $data
+     * @return User
+     */
+    public function adminCreate(array $data)
+    {
+        return $this->users->createUser([
+            'full_name'     => $data['full_name'] ?? null,
+            'username'      => $data['username'],
+            'password'      => Hash::make($data['password']),
+            'role'          => $data['role'] ?? 'user',
+            'is_active'     => $data['is_active'] ?? true,
+            'failed_logins' => $data['failed_logins'] ?? 0,
+        ]);
     }
 }

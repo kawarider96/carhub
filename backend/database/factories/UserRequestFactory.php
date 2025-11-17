@@ -13,15 +13,15 @@ class UserRequestFactory extends Factory
 
     public function definition(): array
     {
-        $type = $this->faker->randomElement(['DELETE_ACCOUNT', 'MISSING_BRAND']);
+        $type = $this->faker->randomElement(['delete_account', 'missing_brand']);
 
         return [
             'user_id'     => User::factory(),
             'type'        => $type,
-            'payload'     => $type === 'MISSING_BRAND'
-                                ? ['suggested_brand' => $this->faker->word()]
+            'payload'     => $type === 'missing_brand'
+                                ? ['brand' => $this->faker->word()]
                                 : null,
-            'status'      => 'OPEN',
+            'status'      => 'open',
             'handled_by'  => null,
             'handled_at'  => null,
             'created_at'  => CarbonImmutable::now(),

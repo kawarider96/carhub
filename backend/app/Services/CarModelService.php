@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\CarModelRepository;
 use App\Models\CarModel;
+use Illuminate\Support\Collection;
 
 class CarModelService
 {

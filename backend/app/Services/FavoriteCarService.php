@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Repositories\FavoriteCarRepository;
+use App\Models\FavoriteCar;
+use Illuminate\Support\Collection;
 
 class FavoriteCarService
 {
