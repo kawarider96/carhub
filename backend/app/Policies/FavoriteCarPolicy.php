@@ -7,12 +7,17 @@ use App\Models\User;
 
 class FavoriteCarPolicy
 {
+    public function viewAny(User $user): bool
+    {
+        return $user->role === 'admin';
+    }
+
     /**
      * Csak a saját kedvenc autódat láthatod.
      */
     public function view(User $user, FavoriteCar $favoriteCar): bool
     {
-        return $favoriteCar->user_id === $user->id;
+        return $user->role === 'admin' || $favoriteCar->user_id === $user->id;
     }
 
     /**

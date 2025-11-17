@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Illuminate\Http\JsonResponse;
 
 class EnsureUserIsActiveTest extends TestCase
 {
@@ -72,10 +73,16 @@ class EnsureUserIsActiveTest extends TestCase
     public function test_throws_error_when_user_is_null(): void
     {
         $middleware = new EnsureUserIsActive();
-        $request = $this->makeRequestWithUser(null);
 
-        $this->expectException(\ErrorException::class);
+        $request = Request::create('/api/valami', 'GET');
 
-        $middleware->handle($request, $this->next());
+        $response = $middleware->handle($request, fn() => response('OK'));
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertEquals(401, $response->status());
+        $this->assertEquals([
+            'message' => 'Nincs bejelentkezve',
+            'status' => false,
+        ], $response->getData(true));
     }
 }
