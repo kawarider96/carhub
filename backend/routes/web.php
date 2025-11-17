@@ -6,6 +6,8 @@ use App\Http\Controllers\Web\User\DashboardController;
 use App\Http\Controllers\Web\User\FavoriteCarController;
 use App\Http\Controllers\Web\User\CarImageController;
 use App\Http\Controllers\Web\User\CarModelController;
+use App\Http\Controllers\Web\Admin\UserRequestController as WebUserRequestController;
+use App\Http\Controllers\Web\Admin\UserController as WebUserController;
 use App\Http\Controllers\Web\HomeController;
 
 /*
@@ -61,6 +63,24 @@ Route::middleware(['auth', 'active'])->group(function () {
     // User modell létrehozó oldal
     Route::get('/models/create', [CarModelController::class, 'create'])
         ->name('models.create');
+
+    // UserRequests (USER) – ugyanazon controller alatt (Web/Admin/...)
+    Route::prefix('user-requests')->name('user-requests.')->group(function () {
+        Route::get('/create', [WebUserRequestController::class, 'create'])->name('create');
+        Route::post('/', [WebUserRequestController::class, 'store'])->name('store');
+    });
+
+    // PROFILE
+    Route::get('/profile', [WebUserController::class, 'profile'])->name('profile.show');
+    Route::get('/profile/change-password', [WebUserController::class, 'changePasswordForm'])->name('profile.change-password');
+    Route::post('/profile/change-password', [WebUserController::class, 'changePassword'])->name('profile.change-password.post');
+});
+
+// Admin – UserRequests kezelése
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/requests', [WebUserRequestController::class, 'index'])->name('requests.index');
+    Route::post('/requests/{userRequest}/approve', [WebUserRequestController::class, 'approve'])->name('requests.approve');
+    Route::post('/requests/{userRequest}/reject', [WebUserRequestController::class, 'reject'])->name('requests.reject');
 });
 
 /*

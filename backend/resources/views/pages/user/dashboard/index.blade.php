@@ -52,7 +52,7 @@
         <a href="{{ route('favorites.create') }}" class="bg-accent text-black px-6 py-3 rounded-xl font-semibold hover:bg-green-400 transition">
             + Új kedvenc autó
         </a>
-        <a class="bg-panel border border-border px-6 py-3 rounded-xl hover:border-accent transition">
+        <a href="{{ route('user-requests.create') }}" class="bg-panel border border-border px-6 py-3 rounded-xl hover:border-accent transition">
             Hiányzó márka bejelentése
         </a>
     </div>
