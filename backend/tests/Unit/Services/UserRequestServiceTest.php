@@ -60,10 +60,17 @@ class UserRequestServiceTest extends TestCase
         $users    = Mockery::mock(UserRepository::class);
         $brands   = Mockery::mock(CarBrandRepository::class);
 
+        $existing = UserRequest::factory()->make([
+            'id' => 1,
+            'user_id' => 10,
+            'type' => 'delete_account',
+            'status' => 'open',
+        ]);
+
         $requests->shouldReceive('findOpenByUserAndType')
             ->once()
             ->with(10, 'delete_account')
-            ->andReturn((object)['id'=>1]);
+            ->andReturn($existing);
 
         $requests->shouldReceive('create')->never();
 

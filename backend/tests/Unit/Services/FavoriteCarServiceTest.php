@@ -9,6 +9,7 @@ use App\Services\FavoriteCarService;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use App\Models\User;
 
 class FavoriteCarServiceTest extends TestCase
 {
@@ -46,8 +47,10 @@ class FavoriteCarServiceTest extends TestCase
     #[Test]
     public function test_create_calls_repository_create_with_data(): void
     {
-        $repo = Mockery::mock(FavoriteCarRepository::class);
+        $user = User::factory()->make(['id' => 1]);
+        $this->actingAs($user); // Laravel bejelentkezteti
 
+        $repo = Mockery::mock(FavoriteCarRepository::class);
         $repo->shouldReceive('create')
             ->once()
             ->with(['user_id' => 1, 'car_model_id' => 5])
@@ -55,7 +58,7 @@ class FavoriteCarServiceTest extends TestCase
 
         $service = new FavoriteCarService($repo);
 
-        $res = $service->create(['user_id' => 1, 'car_model_id' => 5]);
+        $res = $service->create(['car_model_id' => 5]);
 
         $this->assertEquals(['id' => 99], $res);
     }
