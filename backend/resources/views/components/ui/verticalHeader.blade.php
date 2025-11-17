@@ -24,6 +24,21 @@
             Dashboard
         </a>
 
+        {{-- Profil --}}
+        <a href="{{ route('profile.show') }}"
+           class="group flex items-center px-3 py-2 rounded-lg relative
+                {{ request()->routeIs('profile.*') 
+                    ? 'bg-white/5 text-accent font-semibold'
+                    : 'text-gray-400 hover:text-accent transition' }}">
+            @if (request()->routeIs('profile.*'))
+                <span class="absolute left-0 top-0 h-full w-1 bg-accent"></span>
+            @else
+                <span class="absolute left-0 top-0 h-full w-1 bg-accent
+                    scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></span>
+            @endif
+            Profil
+        </a>
+
         {{-- Kedvenc autók – csak user --}}
         @if(auth()->user()->role === 'user')
             <a href="{{ route('favorites.index') }}"
