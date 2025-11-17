@@ -2,7 +2,7 @@
 
 A CarHub egy belső használatra szánt járműnyilvántartó rendszer, amely lehetővé teszi a felhasználók számára, hogy saját kedvenc járműveiket rögzítsék, képeket töltsenek fel hozzájuk, valamint különböző adminisztrációs kérelmeket indítsanak. Az admin felhasználók pedig kezelhetik az autómárkákat, jóváhagyhatják a törlési kérelmeket és zárolásokat oldhatnak fel.
 
-## 🔧 Fő funkciók
+##  Fő funkciók
 
 - Bejelentkezés / regisztráció kétféle szerepkörrel (admin, user)
 - Fiók zárolása 5 hibás jelszókísérlet után
@@ -14,10 +14,9 @@ A CarHub egy belső használatra szánt járműnyilvántartó rendszer, amely le
 - Teljes REST API + webes felület
 - Role-based jogosultságkezelés policies és middleware használatával
 
-## 🚀 Telepítés
+##  Telepítés
 
 1. Klónozd a repót:
-   ```bash
    git clone https://github.com/kawarider96/carhub.git
    cd carhub
 
@@ -33,19 +32,20 @@ Felhasználónév: Admin
 
 Jelszó: Admin123!
 
-📂 Dokumentáció
+Dokumentáció
 
-docs/felhasznaloi-utasitas.pdf
+OPENAPI DOCS : http://localhost:8000/docs/api
 
-docs/admin-utasitas.pdf
+docs/felhasznaloi-utasitas.md
+
+docs/admin-utasitas.md
 
 docs/telepitesi-utmutato.md
 
 docs/database-diagram : https://dbdiagram.io/d/carhub-6913008d6735e11170392731
 
 ROLES.md
-
-🧪 Tesztelés
+Tesztelés
 lépj be a docker konténerbe:
 
 1. docker exec -it carhub_app sh
@@ -53,9 +53,8 @@ lépj be a docker konténerbe:
 2. php artisan test
 
 
-Több mint 300 automatikus teszt a policies, service logika és controller viselkedés lefedésére.
-
-🔐 Biztonság
+Több mint 300 automatikus teszt a policies, service logika és controller viselkedés lefedésére
+Biztonság
 
 Jelszavak bcrypt hash-selve
 
@@ -70,7 +69,7 @@ Role-based access policies minden modellhez
 
 ---
 
-# 🛡️ `ROLES.md`
+# `ROLES.md`
 
 # Szerepkörök és jogosultságok
 

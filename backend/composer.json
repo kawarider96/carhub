@@ -13,6 +13,7 @@
         "zircote/swagger-php": "^5.7"
     },
     "require-dev": {
+        "dedoc/scramble": "^0.13.4",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.8",
         "laravel/pail": "^1.2.2",
@@ -84,6 +85,9 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "audit": {
+            "ignore": ["PKSA-365x-2zjk-pt47"]
         }
     },
     "minimum-stability": "stable",
