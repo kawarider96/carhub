@@ -11,10 +11,16 @@
 <div class="bg-panel border border-border rounded-xl shadow-card overflow-hidden hover:border-accent transition p-6">
 
     {{-- Carousel --}}
-    <x-favorites.carousel :id="$id" :images="$images" />
+    @php
+        $imageUrls = $images->isNotEmpty()
+            ? $images->map(fn($img) => route('favorites.images.show', ['favoriteCar' => $id, 'image' => $img->id]))
+            : collect([asset('images/nocar.png')]);
+    @endphp
+
+    <x-favorites.index.carousel :id="$id" :images="$imageUrls" />
 
     {{-- Car details --}}
-    <x-favorites.details 
+    <x-favorites.index.details 
         :model="$model"
         :brand="$brand"
         :year="$year"
@@ -23,6 +29,6 @@
     />
 
     {{-- Actions --}}
-    <x-favorites.actions :id="$id" />
+    <x-favorites.index.actions :id="$id" />
 
 </div>

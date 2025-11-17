@@ -22,8 +22,31 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         
-        $exceptions->render(function (AuthenticationException $e, $request) {
-            // API vagy JSON kérések → 401
+        // 🔥 GLOBAL DEBUG LOGGER – minden kivételt naplóz
+    $exceptions->report(function (Throwable $e) {
+        \Log::error('💀 GLOBAL EXCEPTION', [
+            'error' => $e->getMessage(),
+            'type'  => get_class($e),
+            'file'  => $e->getFile(),
+            'line'  => $e->getLine(),
+            'trace' => collect($e->getTrace())->take(10),
+        ]);
+    });
+
+    // 🔥 GLOBAL RENDER DEBUGGER – minden request tartalmát is logoljuk
+    $exceptions->render(function (Throwable $e, $request) {
+        \Log::error('🛰 RENDER EXCEPTION – REQUEST DUMP', [
+            'url'     => $request->fullUrl(),
+            'method'  => $request->method(),
+            'all'     => $request->all(),
+            'files'   => $request->allFiles(),
+            'error'   => $e->getMessage(),
+            'type'    => get_class($e),
+        ]);
+
+        // Speciális kezelés: AuthenticationException
+        if ($e instanceof AuthenticationException) {
+
             if ($request->is('api/*') || $request->expectsJson()) {
                 return response()->json([
                     'status' => false,
@@ -31,7 +54,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 401);
             }
 
-            // Web esetén továbbra is redirect
             return redirect()->guest(route('login'));
-        });
+        }
+
+        // alapértelmezett render
+        return null; 
+    });
     })->create();
